@@ -64,12 +64,10 @@ module DebugTrace
   end
 
   class PrintOptions
-    attr_reader :reflection,
-                :minimum_output_count, :minimum_output_length,
+    attr_reader :minimum_output_count, :minimum_output_length,
                 :collection_limit, :bytes_limit, :string_limit, :reflection_limit
 
     def initialize(
-      reflection,
       minimum_output_count,
       minimum_output_length,
       collection_limit,
@@ -77,7 +75,6 @@ module DebugTrace
       string_limit,
       reflection_limit
     )
-      @reflection = reflection
       @minimum_output_count = minimum_output_count == -1 ? DebugTrace.config.minimum_output_count : minimum_output_count
       @minimum_output_length = minimum_output_length == -1 ? DebugTrace.config.minimum_output_length : minimum_output_length
       @collection_limit = collection_limit == -1 ? DebugTrace.config.collection_limit : collection_limit
@@ -133,27 +130,20 @@ module DebugTrace
       value_buff = to_string_enumerable(value, print_options)
       buff.append_buffer(separator, value_buff)
     else
+      # use reflection
       value_buff = LogBuffer.new(@@config.maximum_data_output_width)
-      if !print_options.reflection && has_to_s_method?(value)
-        # has to_s or inspect method
-        value_buff.append('to_s: ')
-        value_buff.no_break_append(value.to_s)
-        buff.append_buffer(separator, value_buff)
+      if @@reflected_objects.any? { |obj| value.equal?(obj) }
+        # cyclic reference
+        value_buff.no_break_append(@@config.cyclic_reference_string)
+      elsif @@reflected_objects.length > print_options.reflection_limit
+        # over reflection level limitation
+        value_buff.no_break_append(@@config.limit_string)
       else
-        # use reflection
-        if @@reflected_objects.any? { |obj| value.equal?(obj) }
-          # cyclic reference
-          value_buff.no_break_append(@@config.cyclic_reference_string)
-        elsif @@reflected_objects.length > print_options.reflection_limit
-          # over reflection level limitation
-          value_buff.no_break_append(@@config.limit_string)
-        else
-          @@reflected_objects.push(value)
-          value_buff = to_string_reflection(value, print_options)
-          @@reflected_objects.pop
-        end
-        buff.append_buffer(separator, value_buff)
+        @@reflected_objects.push(value)
+        value_buff = to_string_reflection(value, print_options)
+        @@reflected_objects.pop
       end
+      buff.append_buffer(separator, value_buff)
     end
 
     buff
@@ -462,7 +452,7 @@ module DebugTrace
 
   @@DO_NOT_OUTPUT = 'Do not output'
 
-  def self.print(name, value = @@DO_NOT_OUTPUT, reflection: false,
+  def self.print(name, value = @@DO_NOT_OUTPUT,
       minimum_output_count: -1, minimum_output_length: -1,
       collection_limit: -1, bytes_limit: -1,
       string_limit: -1, reflection_limit: -1)
@@ -482,7 +472,6 @@ module DebugTrace
       else
         # with value
         print_options = PrintOptions.new(
-          reflection,
           minimum_output_count, minimum_output_length,
           collection_limit, bytes_limit,
           string_limit, reflection_limit
