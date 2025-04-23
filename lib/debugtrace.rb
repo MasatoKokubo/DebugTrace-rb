@@ -64,27 +64,26 @@ module DebugTrace
   end
 
   class PrintOptions
-    attr_reader :force_reflection,
-              # :output_private, :output_method,
+    attr_reader :reflection,
                 :minimum_output_count, :minimum_output_length,
-                :collection_limit, :bytes_limit, :string_limit, :reflection_nest_limit
+                :collection_limit, :bytes_limit, :string_limit, :reflection_limit
 
     def initialize(
-      force_reflection,
+      reflection,
       minimum_output_count,
       minimum_output_length,
       collection_limit,
       bytes_limit,
       string_limit,
-      reflection_nest_limit
+      reflection_limit
     )
-      @force_reflection = force_reflection
+      @reflection = reflection
       @minimum_output_count = minimum_output_count == -1 ? DebugTrace.config.minimum_output_count : minimum_output_count
       @minimum_output_length = minimum_output_length == -1 ? DebugTrace.config.minimum_output_length : minimum_output_length
       @collection_limit = collection_limit == -1 ? DebugTrace.config.collection_limit : collection_limit
       @bytes_limit = bytes_limit == -1 ? DebugTrace.config.bytes_limit : bytes_limit
       @string_limit = string_limit == -1 ? DebugTrace.config.string_limit : string_limit
-      @reflection_nest_limit = reflection_nest_limit == -1 ? DebugTrace.config.reflection_nest_limit : reflection_nest_limit
+      @reflection_limit = reflection_limit == -1 ? DebugTrace.config.reflection_limit : reflection_limit
     end
   end
 
@@ -118,31 +117,24 @@ module DebugTrace
 
     case value
     when nil
-      # nil
       buff.no_break_append(separator).append('nil')
-    when String # ''.class # String
-      # String
+    when FalseClass, TrueClass, Integer, Float
+      buff.no_break_append(separator).append(value.to_s)
+    when String
       value_buff = to_string_str(value, print_options)
       buff.append_buffer(separator, value_buff)
     when DateTime
-      # DateTime
       buff.no_break_append(separator).append(value.strftime('%Y-%m-%d %H:%M-%S.%L%:z'))
     when Date
-      # DateTime
       buff.no_break_append(separator).append(value.strftime('%Y-%m-%d'))
     when Time
-      # DateTime
       buff.no_break_append(separator).append(value.strftime('%H:%M-%S.%L%:z'))
-    when Integer, Float
-      # Integer, Float, Date, Time
-      buff.no_break_append(separator).append(value.to_s)
     when Array, Set, Hash
-      # Array, Set, Hash
       value_buff = to_string_enumerable(value, print_options)
       buff.append_buffer(separator, value_buff)
     else
       value_buff = LogBuffer.new(@@config.maximum_data_output_width)
-      if !print_options.force_reflection && has_to_s_method?(value)
+      if !print_options.reflection && has_to_s_method?(value)
         # has to_s or inspect method
         value_buff.append('to_s: ')
         value_buff.no_break_append(value.to_s)
@@ -152,7 +144,7 @@ module DebugTrace
         if @@reflected_objects.any? { |obj| value.equal?(obj) }
           # cyclic reference
           value_buff.no_break_append(@@config.cyclic_reference_string)
-        elsif @@reflected_objects.length > print_options.reflection_nest_limit
+        elsif @@reflected_objects.length > print_options.reflection_limit
           # over reflection level limitation
           value_buff.no_break_append(@@config.limit_string)
         else
@@ -470,10 +462,10 @@ module DebugTrace
 
   @@DO_NOT_OUTPUT = 'Do not output'
 
-  def self.print(name, value = @@DO_NOT_OUTPUT, force_reflection: false,
+  def self.print(name, value = @@DO_NOT_OUTPUT, reflection: false,
       minimum_output_count: -1, minimum_output_length: -1,
       collection_limit: -1, bytes_limit: -1,
-      string_limit: -1, reflection_nest_limit: -1)
+      string_limit: -1, reflection_limit: -1)
     @@thread_mutex.synchronize do
       print_start
       return value unless @@config.enabled?
@@ -490,10 +482,10 @@ module DebugTrace
       else
         # with value
         print_options = PrintOptions.new(
-          force_reflection,
+          reflection,
           minimum_output_count, minimum_output_length,
           collection_limit, bytes_limit,
-          string_limit, reflection_nest_limit
+          string_limit, reflection_limit
         )
         @@last_log_buff = to_string(name, value, print_options)
       end

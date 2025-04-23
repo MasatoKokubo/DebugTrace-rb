@@ -38,7 +38,7 @@ class Config
     @collection_limit          = _get_config_value 'collection_limit'          , 128
     @bytes_limit               = _get_config_value 'bytes_limit'               , 256
     @string_limit              = _get_config_value 'string_limit'              , 256
-    @reflection_nest_limit     = _get_config_value 'reflection_nest_limit'     , 4
+    @reflection_limit          = _get_config_value 'reflection_limit'          , 4
   end
 
   attr_reader :config_path, :logger_name, :logging_destination, :logging_format, :logging_datetime_format,
@@ -47,7 +47,7 @@ class Config
               :cyclic_reference_string, :varname_value_separator, :key_value_separator,
               :print_suffix_format, :count_format, :minimum_output_count, :length_format,
               :minimum_output_length, :maximum_data_output_width, :bytes_count_in_line,
-              :collection_limit, :bytes_limit, :string_limit, :reflection_nest_limit
+              :collection_limit, :bytes_limit, :string_limit, :reflection_limit
 
   def enabled? = @enabled
 
