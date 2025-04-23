@@ -1,5 +1,5 @@
 # common.rb
-# (C) 2023 Masato Kokubo
+# (C) 2025 Masato Kokubo
 module Common
   def self.check_type(value_name, value, type)
     if !(value_name.is_a? String); raise "Argument value_name (=#{value_name}) must be a String"; end

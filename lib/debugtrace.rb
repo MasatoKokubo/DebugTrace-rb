@@ -1,6 +1,5 @@
-# main.rb
+# debugtrace.rb
 # (C) 2025 Masato Kokubo
-require 'thread'
 require 'logger'
 
 # Require necessary files
@@ -9,19 +8,14 @@ require_relative 'debugtrace/common'
 require_relative 'debugtrace/config'
 require_relative 'debugtrace/log_buffer'
 require_relative 'debugtrace/loggers'
-require_relative 'debugtrace/print_options'
 require_relative 'debugtrace/state'
 
 module DebugTrace
-# class Error < StandardError; end
-  @@AUTHOR = 'Masato Kokubo <masatokokubo@gmail.com>'
-# @@VERSION = '1.0.0 dev 1'
-
   # Configuration values
   @@config = nil
 
   def self.config
-    return @@config
+    @@config
   end
 
   # A Mutex for thread safety
@@ -61,22 +55,22 @@ module DebugTrace
       Pr._print("debugtrace: (#{@@config.config_path}) logger = #{@@config.logger_name} is unknown", STDERR)
     end
 
-    if @@config.enabled?
-      ruby_version = RUBY_VERSION
-      @@logger.print("DebugTrace-rb #{DebugTrace::VERSION} on Ruby #{ruby_version}")
-      @@logger.print("  config file path: #{@@config.config_path}")
-      @@logger.print("  logger: #{@@logger}")
-    end
+    return unless @@config.enabled?
+
+    ruby_version = RUBY_VERSION
+    @@logger.print("DebugTrace-rb #{DebugTrace::VERSION} on Ruby #{ruby_version}")
+    @@logger.print("  config file path: #{@@config.config_path}")
+    @@logger.print("  logger: #{@@logger}")
   end
 
   class PrintOptions
-    attr_reader :force_reflection, :output_private, :output_method, :minimum_output_count, :minimum_output_length,
+    attr_reader :force_reflection,
+              # :output_private, :output_method,
+                :minimum_output_count, :minimum_output_length,
                 :collection_limit, :bytes_limit, :string_limit, :reflection_nest_limit
 
     def initialize(
       force_reflection,
-      output_private,
-      output_method,
       minimum_output_count,
       minimum_output_length,
       collection_limit,
@@ -85,8 +79,6 @@ module DebugTrace
       reflection_nest_limit
     )
       @force_reflection = force_reflection
-      @output_private = output_private
-      @output_method = output_method
       @minimum_output_count = minimum_output_count == -1 ? DebugTrace.config.minimum_output_count : minimum_output_count
       @minimum_output_length = minimum_output_length == -1 ? DebugTrace.config.minimum_output_length : minimum_output_length
       @collection_limit = collection_limit == -1 ? DebugTrace.config.collection_limit : collection_limit
@@ -117,7 +109,7 @@ module DebugTrace
 
   def self.to_string(name, value, print_options)
     buff = LogBuffer.new(@@config.maximum_data_output_width)
-    
+
     separator = ''
     unless name.empty?
       buff.append(name)
@@ -126,31 +118,34 @@ module DebugTrace
 
     case value
     when nil
-      # None
+      # nil
       buff.no_break_append(separator).append('nil')
-    when String
+    when String # ''.class # String
       # String
       value_buff = to_string_str(value, print_options)
       buff.append_buffer(separator, value_buff)
-    when Integer, Float, Date, Time, DateTime
-      # int, float, Date, Time, DateTime
+    when DateTime
+      # DateTime
+      buff.no_break_append(separator).append(value.strftime('%Y-%m-%d %H:%M-%S.%L%:z'))
+    when Date
+      # DateTime
+      buff.no_break_append(separator).append(value.strftime('%Y-%m-%d'))
+    when Time
+      # DateTime
+      buff.no_break_append(separator).append(value.strftime('%H:%M-%S.%L%:z'))
+    when Integer, Float
+      # Integer, Float, Date, Time
       buff.no_break_append(separator).append(value.to_s)
     when Array, Set, Hash
-      # list, set, tuple, dict
-      value_buff = to_string_iterable(value, print_options)
+      # Array, Set, Hash
+      value_buff = to_string_enumerable(value, print_options)
       buff.append_buffer(separator, value_buff)
     else
-      has_str, has_repr = has_str_repr_method(value)
       value_buff = LogBuffer.new(@@config.maximum_data_output_width)
-      if !print_options.force_reflection && (has_str || has_repr)
+      if !print_options.force_reflection && has_to_s_method?(value)
         # has to_s or inspect method
-        if has_repr
-          value_buff.append('inspect(): ')
-          value_buff.no_break_append(value.inspect)
-        else
-          value_buff.append('to_s(): ')
-          value_buff.no_break_append(value.to_s)
-        end
+        value_buff.append('to_s: ')
+        value_buff.no_break_append(value.to_s)
         buff.append_buffer(separator, value_buff)
       else
         # use reflection
@@ -168,7 +163,7 @@ module DebugTrace
         buff.append_buffer(separator, value_buff)
       end
     end
-    
+
     buff
   end
 
@@ -177,19 +172,19 @@ module DebugTrace
     has_double_quote = false
     single_quote_buff = LogBuffer.new(@@config.maximum_data_output_width)
     double_quote_buff = LogBuffer.new(@@config.maximum_data_output_width)
-    
+
     if value.length >= @@config.minimum_output_length
-      single_quote_buff.no_break_append("(")
-      single_quote_buff.no_break_append(sprintf(@@config.length_format, value.length))
-      single_quote_buff.no_break_append(")")
-      double_quote_buff.no_break_append("(")
-      double_quote_buff.no_break_append(sprintf(@@config.length_format, value.length))
-      double_quote_buff.no_break_append(")")
+      single_quote_buff.no_break_append('(')
+      single_quote_buff.no_break_append(format(@@config.length_format, value.length))
+      single_quote_buff.no_break_append(')')
+      double_quote_buff.no_break_append('(')
+      double_quote_buff.no_break_append(format(@@config.length_format, value.length))
+      double_quote_buff.no_break_append(')')
     end
-    
+
     single_quote_buff.no_break_append("'")
     double_quote_buff.no_break_append('"')
-    
+
     count = 1
     value.each_char do |char|
       if count > print_options.string_limit
@@ -206,33 +201,37 @@ module DebugTrace
         single_quote_buff.no_break_append(char)
         double_quote_buff.no_break_append("\\\"")
         has_double_quote = true
-      when '\\'
-        single_quote_buff.no_break_append('\\\\')
-        double_quote_buff.no_break_append('\\\\')
-      when '\n'
-        single_quote_buff.no_break_append('\\n')
-        double_quote_buff.no_break_append('\\n')
-      when '\r'
-        single_quote_buff.no_break_append('\\r')
-        double_quote_buff.no_break_append('\\r')
-      when '\t'
-        single_quote_buff.no_break_append('\\t')
-        double_quote_buff.no_break_append('\\t')
-      when ("\0".."\37").include?(char)
-        num_str = format('%02X', char.ord)
-        single_quote_buff.no_break_append("\\x" + num_str)
-        double_quote_buff.no_break_append("\\x" + num_str)
+      when "\\"
+        single_quote_buff.no_break_append("\\\\")
+        double_quote_buff.no_break_append("\\\\")
+      when "\n"
+        single_quote_buff.no_break_append("\\n")
+        double_quote_buff.no_break_append("\\n")
+      when "\r"
+        single_quote_buff.no_break_append("\\r")
+        double_quote_buff.no_break_append("\\r")
+      when "\t"
+        single_quote_buff.no_break_append("\\t")
+        double_quote_buff.no_break_append("\\t")
       else
-        single_quote_buff.no_break_append(char)
-        double_quote_buff.no_break_append(char)
+        char_ord = char.ord
+        if char_ord >= 0x00 && char_ord <= 0x1F || char_ord == 0x7F
+          num_str = format('%02X', char_ord)
+          single_quote_buff.no_break_append("\\x" + num_str)
+          double_quote_buff.no_break_append("\\x" + num_str)
+        else
+          single_quote_buff.no_break_append(char)
+          double_quote_buff.no_break_append(char)
+        end
       end
       count += 1
     end
-    
+
     double_quote_buff.no_break_append('"')
     single_quote_buff.no_break_append("'")
-    
+
     return double_quote_buff if has_single_quote && !has_double_quote
+
     single_quote_buff
   end
 
@@ -240,7 +239,7 @@ module DebugTrace
     bytes_length = value.length
     buff = LogBuffer.new(@@config.maximum_data_output_width)
     buff.no_break_append('(')
-    
+
     if value.is_a?(String)
       buff.no_break_append('bytes')
     elsif value.is_a?(Array)
@@ -249,7 +248,7 @@ module DebugTrace
 
     if bytes_length >= @@config.minimum_output_length
       buff.no_break_append(' ')
-      buff.no_break_append(sprintf(@@config.length_format, bytes_length))
+      buff.no_break_append(format(@@config.length_format, bytes_length))
     end
 
     buff.no_break_append(') [')
@@ -264,20 +263,18 @@ module DebugTrace
     chars = ''
     count = 0
     value.each_byte do |element|
-      if count != 0 && count % @@config.bytes_count_in_line == 0
-        if multi_lines
-          buff.no_break_append('| ')
-          buff.no_break_append(chars)
-          buff.line_feed
-          chars = ''
-        end
+      if count != 0 && count % @@config.bytes_count_in_line == 0 && multi_lines
+        buff.no_break_append('| ')
+        buff.no_break_append(chars)
+        buff.line_feed
+        chars = ''
       end
       if count >= print_options.bytes_limit
         buff.no_break_append(@@config.limit_string)
         break
       end
-      buff.no_break_append(sprintf('%02X ', element))
-      chars += (element >= 0x20 && element <= 0x7E) ? element.chr : '.'
+      buff.no_break_append(format('%02X ', element))
+      chars += element >= 0x20 && element <= 0x7E ? element.chr : '.'
       count += 1
     end
 
@@ -297,13 +294,13 @@ module DebugTrace
     end
     buff.no_break_append(']')
 
-    return buff
+    buff
   end
 
   def self.to_string_reflection(value, print_options)
     buff = LogBuffer.new(@@config.maximum_data_output_width)
 
-    buff.append(_get_type_name(value))
+    buff.append(get_type_name(value))
 
     body_buff = to_string_reflection_body(value, print_options)
 
@@ -323,72 +320,52 @@ module DebugTrace
     end
     buff.no_break_append('}')
 
-    return buff
+    buff
   end
 
   def self.to_string_reflection_body(value, print_options)
     buff = LogBuffer.new(@@config.maximum_data_output_width)
 
-    members = []
-    begin
-      base_members = value.methods(false).map { |m| [m, value.send(m)] }
-      members = base_members.select do |m|
-        name, _ = m
-        !name.start_with?('__') || !name.end_with?('__') && 
-        (print_options.output_method || !value.method(name).owner.nil?) && 
-        (print_options.output_private || !name.start_with?('_'))
-      end
-    rescue => ex
-      buff.append(ex.to_s)
-      return buff
-    end
+    variables = value.instance_variables
 
     multi_lines = false
     index = 0
-    members.each do |member|
-      if index > 0
-        buff.no_break_append(', ')
-      end
+    variables.each do |variable|
+      buff.no_break_append(', ') if index > 0
 
-      name, value = member
+      var_value = value.instance_variable_get(variable)
       member_buff = LogBuffer.new(@@config.maximum_data_output_width)
-      member_buff.append(name)
-      member_buff.append_buffer(@@config.key_value_separator, to_string('', value, print_options))
-      if index > 0 && (multi_lines || member_buff.multi_lines?)
-        buff.line_feed
-      end
+      member_buff.append(variable)
+      member_buff.append_buffer(@@config.key_value_separator, to_string('', var_value, print_options))
+      buff.line_feed if index > 0 && (multi_lines || member_buff.multi_lines?)
       buff.append_buffer('', member_buff)
 
       multi_lines = member_buff.multi_lines?
       index += 1
     end
 
-    return buff
+    buff
   end
 
-  def self.to_string_iterable(values, print_options)
-    open_char = '{'  # set, frozenset, dict
-    close_char = '}'
+  def self.to_string_enumerable(values, print_options)
+    open_char = '[' # Array 
+    close_char = ']'
 
-    if values.is_a?(Array)
-      # list
-      open_char = '['
+    if values.is_a?(Hash)
+      # Array
+      open_char = '{'
+      close_char = '}'
+    elsif values.is_a?(Set)
+      # Sete
+      open_char = 'Set['
       close_char = ']'
-    elsif values.is_a?(Tuple)
-      # tuple
-      open_char = '('
-      close_char = ')'
     end
 
     buff = LogBuffer.new(@@config.maximum_data_output_width)
-    buff.append(_get_type_name(values, values.length))
+    buff.append(get_type_name(values, values.length))
     buff.no_break_append(open_char)
 
-    body_buff = to_string_iterable_body(values, print_options)
-    if open_char == '(' && values.length == 1
-      # A tuple with 1 element
-      body_buff.no_break_append(',')
-    end
+    body_buff = to_string_enumerable_body(values, print_options)
 
     multi_lines = body_buff.multi_lines? || buff.length + body_buff.length > @@config.maximum_data_output_width
 
@@ -406,48 +383,41 @@ module DebugTrace
 
     buff.no_break_append(close_char)
 
-    return buff
+    buff
   end
 
-  def self.to_string_iterable_body(values, print_options)
+  def self.to_string_enumerable_body(values, print_options)
     buff = LogBuffer.new(@@config.maximum_data_output_width)
 
     multi_lines = false
     index = 0
 
     values.each do |element|
-      if index > 0
-        buff.no_break_append(', ')
-      end
+      buff.no_break_append(', ') if index > 0
 
       if index >= print_options.collection_limit
         buff.append(@@config.limit_string)
         break
       end
 
-      element_buff = LogBuffer.new(@@config.maximum_data_output_width)
-      if values.is_a?(Hash)
-        # dictionary
-        element_buff = to_string_key_value(element, values[element], print_options)
-      else
-        # list, set, frozenset, or tuple
-        element_buff = to_string('', element, print_options)
-      end
+      element_buff = if values.is_a?(Hash)
+          # Hash
+          to_string_key_value(element[0], element[1], print_options)
+        else
+          # Array
+          to_string('', element, print_options)
+        end
 
-      if index > 0 && (multi_lines || element_buff.multi_lines?)
-        buff.line_feed
-      end
+      buff.line_feed if index > 0 && (multi_lines || element_buff.multi_lines?)
       buff.append_buffer('', element_buff)
 
       multi_lines = element_buff.multi_lines?
       index += 1
     end
 
-    if values.is_a?(Hash) && values.empty?
-      buff.no_break_append(':')
-    end
+    buff.no_break_append(':') if values.is_a?(Hash) && values.empty?
 
-    return buff
+    buff
   end
 
   def self.to_string_key_value(key, value, print_options)
@@ -455,94 +425,58 @@ module DebugTrace
     key_buff = to_string('', key, print_options)
     value_buff = to_string('', value, print_options)
     buff.append_buffer('', key_buff).append_buffer(@@config.key_value_separator, value_buff)
-    return buff
+    buff
   end
 
   def self.get_type_name(value, count = -1)
-    value_type = value.class
-    type_name = get_simple_type_name(value.class, 0)
-    if ['Array', 'Hash', 'Set', 'Tuple'].include?(type_name)
-      type_name = ''
-    end
+    type_name = value.class.to_s
+    type_name = '' if %w[Array Hash Set].include?(type_name)
 
     if count >= @@config.minimum_output_count
       type_name += ' ' unless type_name.empty?
       type_name += @@config.count_format % count
     end
 
-    if !type_name.empty?
-      type_name = "(#{type_name})"
-    end
-    return type_name
+    type_name
   end
 
-  def self.get_simple_type_name(value_type, nest)
-    type_name = nest == 0 ? value_type.to_s : value_type.name
-    if type_name.start_with?("<Class '")
-      type_name = type_name[8..-1]
-    elsif type_name.start_with?("<Enum '")
-      type_name = 'enum ' + type_name[7..-1]
-    end
-    if type_name.end_with?("'>")
-      type_name = type_name[0..-3]
-    end
-
-    base_names = value_type.ancestors.reject { |base| base == Object }
-    base_names = base_names.map { |base| get_simple_type_name(base, nest + 1) }
-
-    if base_names.any?
-      type_name += '(' + base_names.join(', ') + ')'
-    end
-
-    return type_name
-  end
-
-  def self.has_str_repr_method(value)
+  def self.has_to_s_method?(value)
     begin
-      members = value.methods
-      has_str = members.include?(:to_s)
-      has_repr = members.include?(:inspect)
-      return has_str, has_repr
+      value.public_method('to_s')
     rescue
-      return false, false
+      return false
     end
+    return true
   end
-
-# def self.get_frame_summary(limit)
-#   begin
-#     raise 'RuntimeError'
-#   rescue => e
-#     return caller_locations(limit: limit).first
-#   end
-#   return nil
-# end
 
   @@before_thread_id = nil
 
   def self.print_start
+    if @@before_thread_id == nil
+      DebugTrace.initialize
+      return unless @@config.enabled?
+    end
+
     thread = Thread.current
     thread_id = thread.object_id
-    if thread_id != @@before_thread_id
-      # Thread changing
-      @@logger.print('')
-      @@logger.print(@@config.thread_boundary_format % [thread.name, thread.object_id])
-      @@logger.print('')
-      @@before_thread_id = thread_id
-    end
+    return unless thread_id != @@before_thread_id
+
+    # Thread changing
+    @@logger.print('')
+    @@logger.print(format(@@config.thread_boundary_format, thread.name, thread_id))
+    @@logger.print('')
+    @@before_thread_id = thread_id
   end
 
   @@DO_NOT_OUTPUT = 'Do not output'
 
   def self.print(name, value = @@DO_NOT_OUTPUT, force_reflection: false,
-            output_private: false, output_method: false,
-            minimum_output_count: -1, minimum_output_length: -1,
-            collection_limit: -1, bytes_limit: -1,
-            string_limit: -1, reflection_nest_limit: -1)
-
-    return value unless @@config.enabled?
-
-    Mutex.new.synchronize do
+      minimum_output_count: -1, minimum_output_length: -1,
+      collection_limit: -1, bytes_limit: -1,
+      string_limit: -1, reflection_nest_limit: -1)
+    @@thread_mutex.synchronize do
       print_start
+      return value unless @@config.enabled?
 
       state = current_state
       @@reflected_objects.clear
@@ -556,22 +490,22 @@ module DebugTrace
       else
         # with value
         print_options = PrintOptions.new(
-          force_reflection, output_private, output_method,
+          force_reflection,
           minimum_output_count, minimum_output_length,
-          collection_limit, bytes_limit, string_limit, reflection_nest_limit
+          collection_limit, bytes_limit,
+          string_limit, reflection_nest_limit
         )
         @@last_log_buff = to_string(name, value, print_options)
       end
 
       # append print suffix
-    # frame_summary = get_frame_summary(3)
       location = caller_locations(3, 3)[0]
-      name     = location != nil ? location.base_label : ''
-      filename = location != nil ? File.basename(location.absolute_path) : ''
-      lineno   = location != nil ? location.lineno : 0
+      name     = !location.nil? ? location.base_label : ''
+      filename = !location.nil? ? File.basename(location.absolute_path) : ''
+      lineno   = !location.nil? ? location.lineno : 0
 
       @@last_log_buff.no_break_append(
-        @@config.print_suffix_format % [name, filename, lineno]
+        format(@@config.print_suffix_format, name, filename, lineno)
       )
 
       @@last_log_buff.line_feed
@@ -585,28 +519,25 @@ module DebugTrace
       end
     end
 
-    return value
+    value
   end
 
-
   def self.enter
-    return unless @@config.enabled?
-    Mutex.new.synchronize do
+    @@thread_mutex.synchronize do
       print_start
+      return unless @@config.enabled?
 
       state = current_state
 
-    # frame_summary = get_frame_summary(4)
       location = caller_locations(3, 3)[0]
-      name     = location != nil ? location.base_label : ''
-      filename = location != nil ? File.basename(location.absolute_path) : ''
-      lineno   = location != nil ? location.lineno : 0
+      name     = !location.nil? ? location.base_label : ''
+      filename = !location.nil? ? File.basename(location.absolute_path) : ''
+      lineno   = !location.nil? ? location.lineno : 0
 
-    # parent_frame_summary = get_frame_summary(5)
       parent_location = caller_locations(4, 4)[0]
-      parent_name     = parent_location != nil ? parent_location.base_label : ''
-      parent_filename = parent_location != nil ? File.basename(parent_location.absolute_path) : ''
-      parent_lineno   = parent_location != nil ? parent_location.lineno : 0
+      parent_name     = !parent_location.nil? ? parent_location.base_label : ''
+      parent_filename = !parent_location.nil? ? File.basename(parent_location.absolute_path) : ''
+      parent_lineno   = !parent_location.nil? ? parent_location.lineno : 0
 
       indent_string = get_indent_string(state.nest_level, 0)
       if state.nest_level < state.previous_nest_level || @@last_log_buff.multi_lines?
@@ -615,7 +546,7 @@ module DebugTrace
 
       @@last_log_buff = LogBuffer.new(@@config.maximum_data_output_width)
       @@last_log_buff.no_break_append(
-        @@config.enter_format % [name, filename, lineno, parent_name, parent_filename, parent_lineno]
+        format(@@config.enter_format, name, filename, lineno, parent_name, parent_filename, parent_lineno)
       )
       @@last_log_buff.line_feed
       @@logger.print(indent_string + @@last_log_buff.lines[0].log)
@@ -625,10 +556,9 @@ module DebugTrace
   end
 
   def self.leave
-    return unless @@config.enabled?
-    
-    Mutex.new.synchronize do
+    @@thread_mutex.synchronize do
       print_start
+      return unless @@config.enabled?
 
       state = current_state
 
@@ -641,11 +571,11 @@ module DebugTrace
         @@logger.print(get_indent_string(state.nest_level, 0)) # Empty Line
       end
 
-      time = Time.now.utc - state.down_nest
+      time = (Time.now.utc - state.down_nest) * 1000 # milliseconds <- seconds
 
       @@last_log_buff = LogBuffer.new(@@config.maximum_data_output_width)
       @@last_log_buff.no_break_append(
-        @@config.leave_format % [name, filename, lineno, time]
+        format(@@config.leave_format, name, filename, lineno, time)
       )
       @@last_log_buff.line_feed
       @@logger.print(get_indent_string(state.nest_level, 0) + @@last_log_buff.lines[0].log)
@@ -657,13 +587,10 @@ module DebugTrace
     buff_string = lines.map { |line| _config.data_indent_string * line[0] + line[1] }.join("\n")
 
     state = nil
-    Mutex.new.synchronize do
+    @@thread_mutex.synchronize do
       state = current_state
     end
 
     "#{get_indent_string(state.nest_level, 0)}#{buff_string}"
   end
 end
-
-DebugTrace.initialize
-

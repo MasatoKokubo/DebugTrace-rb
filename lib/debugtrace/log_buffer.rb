@@ -1,5 +1,5 @@
 # log_buffer.rb
-# (C) 2023 Masato Kokubo
+# (C) 2025 Masato Kokubo
 require_relative 'common'
 
 # Buffers logs.
@@ -11,14 +11,8 @@ class LogBuffer
       @log = Common.check_type('log', log, String)
     end
 
-    def nest_level
-      @nest_level
-    end
+    attr_reader :nest_level, :log
 
-    def log
-      @log
-    end
-    
     def to_s
       "(LogBuffer.LevelAndLog){nest_level: #{@nest_level}, log: \"#{@log}\"}"
     end
@@ -34,12 +28,12 @@ class LogBuffer
     @lines = []
 
     # buffer for a line of logs
-    @last_line = ""
+    @last_line = ''
   end
 
   # Breaks the current line.
   def line_feed
-    @lines << LevelAndLog.new(@nest_level + @append_nest_level, @last_line.rstrip())
+    @lines << LevelAndLog.new(@nest_level + @append_nest_level, @last_line.rstrip)
     @append_nest_level = 0
     @last_line = ''
   end
@@ -63,11 +57,9 @@ class LogBuffer
   def append(value, nest_level = 0, no_break = false)
     Common.check_type('nest_level', nest_level, Integer)
     Common.check_type('no_break', no_break, TrueClass)
-    if value != nil
+    unless value.nil?
       string = value.to_s
-      if !no_break && length > 0 && length + string.length > @maximum_data_output_width
-        line_feed()
-      end
+      line_feed if !no_break && length > 0 && length + string.length > @maximum_data_output_width
       @append_nest_level = nest_level
       @last_line += string
     end
@@ -83,22 +75,18 @@ class LogBuffer
   end
 
   # Appends lines of another LogBuffer.
-  # @param 
-  # @param separator (String): The separator string to append if not ""
+  # @param
+  # @param separator (String): The separator string to append if not ''
   # @param buff (LogBuffer): Another LogBuffer
   # @returns LogBuffer: This object
   def append_buffer(separator, buff)
     Common.check_type('separator', separator, String)
     Common.check_type('buff', buff, LogBuffer)
-    if separator != ""
-      append(separator, 0, true)
-    end
+    append(separator, 0, true) if separator != ''
     index = 0
     for line in buff.lines
-      if index > 0
-        line_feed()
-      end
-      append(line.nest_level, line.log, index == 0 && separator != "")
+      line_feed if index > 0
+      append(line.log, line.nest_level, index == 0 && separator != '')
       index += 1
     end
     self
@@ -117,9 +105,7 @@ class LogBuffer
   # A list of tuple of data indentation level && log string.
   def lines
     lines = @lines.dup
-    if length > 0
-      lines << LevelAndLog.new(@nest_level, @last_line)
-    end
+    lines << LevelAndLog.new(@nest_level, @last_line) if length > 0
     lines
   end
 end

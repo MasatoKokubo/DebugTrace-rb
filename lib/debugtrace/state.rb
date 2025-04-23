@@ -1,5 +1,5 @@
 # state.rb
-# (C) 2023 Masato Kokubo
+# (C) 2025 Masato Kokubo
 require_relative 'common'
 
 # Have the trace state for a thread
