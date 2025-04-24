@@ -11,6 +11,12 @@ class LoggerBase
   def print(message)
     raise 'LoggerBase.print is an abstract method.'
   end
+
+  # Returns a string representation of this object.
+  # @return String: A string representation of this object
+  def to_s
+    "#{self.class.name}"
+  end
 end
 
 # Abstract base class for StdOut and StdErr classes.
@@ -38,12 +44,6 @@ class StdOutLogger < StdLogger
   def initialize(config)
     super(config, $stdout)
   end
-
-  # Returns a string representation of this object.
-  # @return String: A string representation of this object
-  def to_s
-    '$stdout logger'
-  end
 end
 
 # A logger class that outputs to $stderr.
@@ -52,16 +52,10 @@ class StdErrLogger < StdLogger
   def initialize(config)
     super(config, $stderr)
   end
-
-  # Returns a string representation of this object.
-  # @return String: A string representation of this object
-  def to_s
-    '$stderr logger'
-  end
 end
 
 # A logger class that outputs using the logging library.
-class LoggerLogger
+class RubyLogger
   private
 
   class Formatter
@@ -80,7 +74,7 @@ class LoggerLogger
   def initialize(config)
     @config = Common::check_type("config", config, Config)
     @logger = Logger.new(
-        @config.logging_destination,
+        @config.log_path,
         formatter: Formatter.new(@config),
         datetime_format: @config.logging_datetime_format)
   end
@@ -95,28 +89,44 @@ class LoggerLogger
   # Returns a string representation of this object.
   # @return String: A string representation of this object
   def to_s
-    'logging.Logger logger'
+    "Ruby #{Logger.name} path: #{@config.log_path}"
   end
 end
 
 # A logger class that outputs the file.
 class FileLogger < LoggerBase
-  def initialize(config, log_path)
+  @@log_path_default = 'debugtrace.log'
+
+  def initialize(config)
+    @log_path = @@log_path_default
     @config = Common::check_type("config", config, Config)
-    Common::check_type("log_path", log_path, String)
-    dir_path = File.dirname(log_path)
-    if Dir.exist?(dir_path)
-      @log_path = log_path
-    else
-      $stderr.puts "DebugTrace-rb: FileLogger: The directory '#{dir_path}' cannot be found."
-      @log_path = ''
+    Common::check_type("log_path", config.log_path, String)
+    @log_path = config.log_path
+    @append = false
+
+    if @log_path.start_with?('+')
+      @log_path = @log_path[1..-1]
+      @append = true
+    end
+
+    dir_path = File.dirname(@log_path)
+
+    if !Dir.exist?(dir_path)
+      @log_path = @@log_path_default
+      @append = true
+      print("DebugTrace-rb: FileLogger: The directory '#{dir_path}' cannot be found.\n")
+    end
+
+    if !@append
+      File.open(@log_path, 'w') { |file|
+      }
     end
   end
   
   def print(message)
-    Common::check_type("message", message, String)
-    if @log_path != ''
-      File.open(@log_path, 'a') {|file|
+  # Common::check_type("message", message, String)
+    if File.exist?(@log_path)
+      File.open(@log_path, 'a') { |file|
         datetime_str = Time.now().strftime(@config.logging_datetime_format)
         file.puts "#{datetime_str} #{message}"
       }
@@ -126,6 +136,6 @@ class FileLogger < LoggerBase
   # Returns a string representation of this object.
   # @return String: A string representation of this object
   def to_s
-    "File logger: '#{@log_path}"
+    "#{self.class.name} path: #{@log_path}, append: #{@append}"
   end
 end

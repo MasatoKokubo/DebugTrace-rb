@@ -4,6 +4,35 @@ require 'yaml'
 require_relative 'common'
 
 class Config
+  attr_reader :config
+  attr_reader :config_path
+  attr_reader :logger_name
+  attr_reader :log_path
+  attr_reader :logging_format
+  attr_reader :logging_datetime_format
+  attr_reader :enter_format
+  attr_reader :leave_format
+  attr_reader :thread_boundary_format
+  attr_reader :maximum_indents
+  attr_reader :indent_string
+  attr_reader :data_indent_string
+  attr_reader :limit_string
+  attr_reader :non_output_string
+  attr_reader :cyclic_reference_string
+  attr_reader :varname_value_separator
+  attr_reader :key_value_separator
+  attr_reader :print_suffix_format
+  attr_reader :count_format
+  attr_reader :minimum_output_count
+  attr_reader :length_format
+  attr_reader :minimum_output_length
+  attr_reader :maximum_data_output_width
+  attr_reader :bytes_count_in_line
+  attr_reader :collection_limit
+  attr_reader :bytes_limit
+  attr_reader :string_limit
+  attr_reader :reflection_limit
+
   def initialize(config_path)
     @config_path = Common.check_type('config_path', config_path, String)
     if File.exist?(@config_path)
@@ -12,42 +41,34 @@ class Config
       @config_path = '<No config file>'
       @config = nil
     end
-    @logger_name               = _get_config_value 'logger'                    , 'stderr'
-    @logging_destination       = _get_config_value 'logging_destination'       , 'STDERR'
-    @logging_format            = _get_config_value 'logging_format'            , "%2$s %1$s %4$s\n"
-    @logging_datetime_format   = _get_config_value 'logging_datetime_format'   , '%Y-%m-%d %H:%M:%S.%L%:z'
-    @enabled                   = _get_config_value 'enabled'                   , true
-    @enter_format              = _get_config_value 'enter_format'              , 'Enter %1$s (%2$s:%3$d) <- %4$s (%5$s:%6$d)'
-    @leave_format              = _get_config_value 'leave_format'              , 'Leave %1$s (%2$s:%3$d) duration: %4$.3f ms'
-    @thread_boundary_format    = _get_config_value 'thread_boundary_format'    , '______________________________ %1$s #%2$s ______________________________'
-    @maximum_indents           = _get_config_value 'maximum_indents'           , 32
-    @indent_string             = _get_config_value 'indent_string'             , '| '
-    @data_indent_string        = _get_config_value 'data_indent_string'        , '  '
-    @limit_string              = _get_config_value 'limit_string'              , '...'
-    @non_output_string         = _get_config_value 'non_output_string'         , '...'
-    @cyclic_reference_string   = _get_config_value 'cyclic_reference_string'   , '*** Cyclic Reference ***'
-    @varname_value_separator   = _get_config_value 'varname_value_separator'   , ' = '
-    @key_value_separator       = _get_config_value 'key_value_separator'       , ': '
-    @print_suffix_format       = _get_config_value 'print_suffix_format'       , ' (%2$s:%3$d)'
-    @count_format              = _get_config_value 'count_format'              , 'count:%d'
-    @minimum_output_count      = _get_config_value 'minimum_output_count'      , 16
-    @length_format             = _get_config_value 'length_format'             , 'length:%d'
-    @minimum_output_length     = _get_config_value 'minimum_output_length'     , 16
-    @maximum_data_output_width = _get_config_value 'maximum_data_output_width' , 70
-    @bytes_count_in_line       = _get_config_value 'bytes_count_in_line'       , 16
-    @collection_limit          = _get_config_value 'collection_limit'          , 128
-    @bytes_limit               = _get_config_value 'bytes_limit'               , 256
-    @string_limit              = _get_config_value 'string_limit'              , 256
-    @reflection_limit          = _get_config_value 'reflection_limit'          , 4
+    @logger_name               = get_value 'logger'                   , 'stderr'
+    @log_path                  = get_value 'log_path'                 , 'debugtrace.log'
+    @logging_format            = get_value 'logging_format'           , "%2$s %1$s %4$s\n"
+    @logging_datetime_format   = get_value 'logging_datetime_format'  , '%Y-%m-%d %H:%M:%S.%L%:z'
+    @enabled                   = get_value 'enabled'                  , true
+    @enter_format              = get_value 'enter_format'             , 'Enter %1$s (%2$s:%3$d) <- %4$s (%5$s:%6$d)'
+    @leave_format              = get_value 'leave_format'             , 'Leave %1$s (%2$s:%3$d) duration: %4$.3f ms'
+    @thread_boundary_format    = get_value 'thread_boundary_format'   , '______________________________ %1$s #%2$s ______________________________'
+    @maximum_indents           = get_value 'maximum_indents'          , 32
+    @indent_string             = get_value 'indent_string'            , '| '
+    @data_indent_string        = get_value 'data_indent_string'       , '  '
+    @limit_string              = get_value 'limit_string'             , '...'
+    @non_output_string         = get_value 'non_output_string'        , '...'
+    @cyclic_reference_string   = get_value 'cyclic_reference_string'  , '*** Cyclic Reference ***'
+    @varname_value_separator   = get_value 'varname_value_separator'  , ' = '
+    @key_value_separator       = get_value 'key_value_separator'      , ': '
+    @print_suffix_format       = get_value 'print_suffix_format'      , ' (%2$s:%3$d)'
+    @count_format              = get_value 'count_format'             , 'count:%d'
+    @minimum_output_count      = get_value 'minimum_output_count'     , 16
+    @length_format             = get_value 'length_format'            , 'length:%d'
+    @minimum_output_length     = get_value 'minimum_output_length'    , 16
+    @maximum_data_output_width = get_value 'maximum_data_output_width', 70
+    @bytes_count_in_line       = get_value 'bytes_count_in_line'      , 16
+    @collection_limit          = get_value 'collection_limit'         , 128
+    @bytes_limit               = get_value 'bytes_limit'              , 256
+    @string_limit              = get_value 'string_limit'             , 256
+    @reflection_limit          = get_value 'reflection_limit'         , 4
   end
-
-  attr_reader :config_path, :logger_name, :logging_destination, :logging_format, :logging_datetime_format,
-              :enter_format, :leave_format, :thread_boundary_format, :maximum_indents,
-              :indent_string, :data_indent_string, :limit_string, :non_output_string,
-              :cyclic_reference_string, :varname_value_separator, :key_value_separator,
-              :print_suffix_format, :count_format, :minimum_output_count, :length_format,
-              :minimum_output_length, :maximum_data_output_width, :bytes_count_in_line,
-              :collection_limit, :bytes_limit, :string_limit, :reflection_limit
 
   def enabled? = @enabled
 
@@ -57,7 +78,7 @@ class Config
   # @param key (String): The key
   # @param defalut_value (Object): Value to return when the value related the key is undefined
   # @return  Object: Value related the key
-  def _get_config_value(key, defalut_value)
+  def get_value(key, defalut_value)
     Common.check_type('key', key, String)
     value = defalut_value
     unless @config.nil?

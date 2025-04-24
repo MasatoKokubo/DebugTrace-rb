@@ -47,19 +47,19 @@ module DebugTrace
       @@logger = StdOutLogger.new(@@config)
     when 'stderr'
       @@logger = StdErrLogger.new(@@config)
-    when 'logger'
-      @@logger = LoggerLogger.new(@@config)
-    when /^file:/
+    when 'rubylogger'
+      @@logger = RubyLogger.new(@@config)
+    when 'file'
       @@logger = FileLogger.new(@@config)
     else
-      Pr._print("debugtrace: (#{@@config.config_path}) logger = #{@@config.logger_name} is unknown", STDERR)
+      @@logger = StdErrLogger.new(@@config)
+      @@logger.print("DebugTrace-rb: logger = #{@@config.logger_name} is unknown. (#{@@config.config_path}) \n")
     end
 
     return unless @@config.enabled?
 
-    ruby_version = RUBY_VERSION
-    @@logger.print("DebugTrace-rb #{DebugTrace::VERSION} on Ruby #{ruby_version}")
-    @@logger.print("  config file path: #{@@config.config_path}")
+    @@logger.print("DebugTrace-rb #{DebugTrace::VERSION} on Ruby #{RUBY_VERSION}")
+    @@logger.print("  config file: #{@@config.config_path}")
     @@logger.print("  logger: #{@@logger}")
   end
 
