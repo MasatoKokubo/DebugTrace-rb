@@ -30,6 +30,6 @@ module Common
         top_type_name == 'E' || top_type_name == 'O' ? 'an' : 'a'
       raise "Argument #{value_name} (=#{value_string}) must be #{a} #{type}"
     end
-    value
+    return value
   end
 end

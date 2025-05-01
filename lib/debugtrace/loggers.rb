@@ -16,7 +16,7 @@ class LoggerBase
   # Returns a string representation of this object.
   # @return [String] A string representation of this object
   def to_s
-    "#{self.class.name}"
+    return "#{self.class.name}"
   end
 end
 
@@ -85,12 +85,13 @@ class RubyLogger
   def print(message)
     Common::check_type("message", message, String)
     @logger.log(Logger::Severity::DEBUG, message, 'DebugTrace-rb')
+    return message
   end
 
   # Returns a string representation of this object.
   # @return [String] A string representation of this object
   def to_s
-    "Ruby #{Logger.name} path: #{@config.log_path}"
+    return "Ruby #{Logger.name} path: #{@config.log_path}"
   end
 end
 
@@ -132,11 +133,12 @@ class FileLogger < LoggerBase
         file.puts "#{datetime_str} #{message}"
       }
     end
+    return message
   end
 
   # Returns a string representation of this object.
   # @return [String] A string representation of this object
   def to_s
-    "#{self.class.name} path: #{@log_path}, append: #{@append}"
+    return "#{self.class.name} path: #{@log_path}, append: #{@append}"
   end
 end

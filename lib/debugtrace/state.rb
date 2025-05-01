@@ -5,46 +5,23 @@ require_relative 'common'
 # Have the trace state for a thread
 # @author Masato Kokubo
 class State
+  attr_reader :thread_id
+  attr_reader :nest_level
+  attr_reader :previous_nest_level
+
   def initialize(thread_id)
-    @thread_id = Common::check_type('thread_id', thread_id, Integer)
+    @thread_id = thread_id
     reset()
-  end
-
-  # @return the thread id.
-  def thread_id
-    @thread_id
-  end
-
-  # @return the nest level.
-  def nest_level
-    @nest_level
-  end
-
-  # @return the previous nest level.
-  def previous_nest_level
-    @previous_nest_level
-  end
-
-  # @return the previous line count.
-  def previous_line_count
-    @previous_line_count
-  end
-
-  # Sets the previous line count.
-  # @param value the previous line count
-  def previous_line_count=(value)
-    @previous_line_count = Common::check_type('value', value, Integer)
   end
 
   def reset
     @nest_level = 0
     @previous_nest_level = 0
-    @previous_line_count = 0
     @times = []
   end
 
   def to_s()
-      "(State){thread_id: #{@thread_id}, nest_level: #{@nest_level}, previous_nest_level: #{@previous_nest_level}, previous_line_count: #{@previous_line_count}, times: #{@times}}"
+      return "(State){thread_id: #{@thread_id}, nest_level: #{@nest_level}, previous_nest_level: #{@previous_nest_level}, times: #{@times}}"
   end
 
   # Ups the nest level.
@@ -54,6 +31,7 @@ class State
           @times.push(Time.now)
       end
       @nest_level += 1
+      return nil
   end
 
   #Downs the nest level.

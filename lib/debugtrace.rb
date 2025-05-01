@@ -16,7 +16,7 @@ module DebugTrace
   @@config = nil
 
   def self.config
-    @@config
+    return @@config
   end
 
   # A Mutex for thread safety
@@ -59,8 +59,9 @@ module DebugTrace
 
     return unless @@config.enabled?
 
+    config_path = File.expand_path(@@config.config_path)
     @@logger.print("DebugTrace-rb #{DebugTrace::VERSION} on Ruby #{RUBY_VERSION}")
-    @@logger.print("  config file: #{@@config.config_path}")
+    @@logger.print("  config file: #{config_path}")
     @@logger.print("  logger: #{@@logger}")
   end
 
@@ -95,13 +96,13 @@ module DebugTrace
       @@state_hash[thread_id] = state
     end
 
-    state
+    return state
   end
 
   def self.get_indent_string(nest_level, data_nest_level)
     indent_str = @@config.indent_string * [[0, nest_level].max, @@config.maximum_indents].min
     data_indent_str = @@config.data_indent_string * [[0, data_nest_level].max, @@config.maximum_indents].min
-    indent_str + data_indent_str
+    return indent_str + data_indent_str
   end
 
   def self.to_string(name, value, print_options)
@@ -153,7 +154,7 @@ module DebugTrace
       buff.append_buffer(separator, value_buff)
     end
 
-    buff
+    return buff
   end
 
   def self.to_string_str(value, print_options)
@@ -215,9 +216,7 @@ module DebugTrace
     double_quote_buff.no_break_append('"')
     single_quote_buff.no_break_append("'")
 
-    return double_quote_buff if has_single_quote && !has_double_quote
-
-    single_quote_buff
+    return has_single_quote && !has_double_quote ? double_quote_buff : single_quote_buff
   end
 
   def self.to_string_bytes(value, print_options)
@@ -278,7 +277,7 @@ module DebugTrace
     end
     buff.no_break_append(']')
 
-    buff
+    return buff
   end
 
   def self.to_string_reflection(value, print_options)
@@ -304,7 +303,7 @@ module DebugTrace
     end
     buff.no_break_append('}')
 
-    buff
+    return buff
   end
 
   def self.to_string_reflection_body(value, print_options)
@@ -328,7 +327,7 @@ module DebugTrace
       index += 1
     end
 
-    buff
+    return buff
   end
 
   def self.to_string_enumerable(values, print_options)
@@ -367,7 +366,7 @@ module DebugTrace
 
     buff.no_break_append(close_char)
 
-    buff
+    return buff
   end
 
   def self.to_string_enumerable_body(values, print_options)
@@ -401,7 +400,7 @@ module DebugTrace
 
     buff.no_break_append(':') if values.is_a?(Hash) && values.empty?
 
-    buff
+    return buff
   end
 
   def self.to_string_key_value(key, value, print_options)
@@ -420,7 +419,7 @@ module DebugTrace
       type_name += @@config.size_format % count
     end
 
-    type_name
+    return type_name
   end
 
   def self.has_to_s_method?(value)
@@ -501,7 +500,7 @@ module DebugTrace
       end
     end
 
-    value
+    return value
   end
 
   def self.enter
@@ -537,10 +536,10 @@ module DebugTrace
     end
   end
 
-  def self.leave
+  def self.leave(return_value = nil)
     @@thread_mutex.synchronize do
       print_start
-      return unless @@config.enabled?
+      return return_value unless @@config.enabled?
 
       state = current_state
 
@@ -561,6 +560,7 @@ module DebugTrace
       )
       @@last_log_buff.line_feed
       @@logger.print(get_indent_string(state.nest_level, 0) + @@last_log_buff.lines[0].log)
+      return return_value
     end
   end
 
@@ -573,6 +573,6 @@ module DebugTrace
       state = current_state
     end
 
-    "#{get_indent_string(state.nest_level, 0)}#{buff_string}"
+    return "#{get_indent_string(state.nest_level, 0)}#{buff_string}"
   end
 end

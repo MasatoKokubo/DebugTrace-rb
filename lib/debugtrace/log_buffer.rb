@@ -15,7 +15,7 @@ class LogBuffer
     attr_reader :nest_level, :log
 
     def to_s
-      "(LogBuffer.LevelAndLog){nest_level: #{@nest_level}, log: \"#{@log}\"}"
+      return "(LogBuffer.LevelAndLog){nest_level: #{@nest_level}, log: \"#{@log}\"}"
     end
   end
 
@@ -64,7 +64,7 @@ class LogBuffer
       @append_nest_level = nest_level
       @last_line += string
     end
-    self
+    return self
   end
 
   # Appends a string representation of the value.
@@ -72,7 +72,7 @@ class LogBuffer
   # @param value [Object] The value to append
   # @return LogBuffer: This object
   def no_break_append(value)
-    append(value, 0, true)
+    return append(value, 0, true)
   end
 
   # Appends lines of another LogBuffer.
@@ -90,23 +90,23 @@ class LogBuffer
       append(line.log, line.nest_level, index == 0 && separator != '')
       index += 1
     end
-    self
+    return self
   end
 
   # The length of the last line.
   def length
-    @last_line.length
+    return @last_line.length
   end
 
   # true if multiple line, false otherwise.
   def multi_lines?
-    @lines.length > 1 || @lines.length == 1 && length > 0
+    return @lines.length > 1 || @lines.length == 1 && length > 0
   end
 
   # A list of tuple of data indentation level && log string.
   def lines
     lines = @lines.dup
     lines << LevelAndLog.new(@nest_level, @last_line) if length > 0
-    lines
+    return lines
   end
 end

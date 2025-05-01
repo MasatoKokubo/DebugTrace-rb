@@ -77,7 +77,7 @@ class Config
   # Returns true if logging is enabled, false otherwise.
   # @return true if logging is enabled, false otherwise
   def enabled?
-    @enabled
+    return @enabled
   end
 
   private
@@ -97,6 +97,6 @@ class Config
         Common.check_type("config[#{key}]", value, defalut_value.class)
       end
     end
-    value
+    return value
   end
 end
