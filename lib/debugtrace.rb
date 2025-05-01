@@ -163,12 +163,8 @@ module DebugTrace
     double_quote_buff = LogBuffer.new(@@config.maximum_data_output_width)
 
     if value.length >= @@config.minimum_output_length
-      single_quote_buff.no_break_append('(')
       single_quote_buff.no_break_append(format(@@config.length_format, value.length))
-      single_quote_buff.no_break_append(')')
-      double_quote_buff.no_break_append('(')
       double_quote_buff.no_break_append(format(@@config.length_format, value.length))
-      double_quote_buff.no_break_append(')')
     end
 
     single_quote_buff.no_break_append("'")
@@ -236,11 +232,10 @@ module DebugTrace
     end
 
     if bytes_length >= @@config.minimum_output_length
-      buff.no_break_append(' ')
       buff.no_break_append(format(@@config.size_format, bytes_length))
     end
 
-    buff.no_break_append(') [')
+    buff.no_break_append('[')
 
     multi_lines = bytes_length >= @@config.bytes_count_in_line
 
@@ -422,7 +417,6 @@ module DebugTrace
     type_name = '' if %w[Array Hash Set].include?(type_name)
 
     if count >= @@config.minimum_output_size
-      type_name += ' ' unless type_name.empty?
       type_name += @@config.size_format % count
     end
 

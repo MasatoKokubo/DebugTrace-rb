@@ -62,10 +62,10 @@ class Config
     @varname_value_separator   = get_value 'varname_value_separator'  , ' = '
     @key_value_separator       = get_value 'key_value_separator'      , ': '
     @print_suffix_format       = get_value 'print_suffix_format'      , ' (%2$s:%3$d)'
-    @size_format               = get_value 'size_format'              , 'size:%d'
-    @minimum_output_size       = get_value 'minimum_output_size'      , 16
-    @length_format             = get_value 'length_format'            , 'length:%d'
-    @minimum_output_length     = get_value 'minimum_output_length'    , 16
+    @size_format               = get_value 'size_format'              , '(size:%d)'
+    @minimum_output_size       = get_value 'minimum_output_size'      , 256
+    @length_format             = get_value 'length_format'            , '(length:%d)'
+    @minimum_output_length     = get_value 'minimum_output_length'    , 256
     @maximum_data_output_width = get_value 'maximum_data_output_width', 70
     @bytes_count_in_line       = get_value 'bytes_count_in_line'      , 16
     @collection_limit          = get_value 'collection_limit'         , 128
