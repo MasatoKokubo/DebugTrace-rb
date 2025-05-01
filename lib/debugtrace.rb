@@ -10,6 +10,7 @@ require_relative 'debugtrace/log_buffer'
 require_relative 'debugtrace/loggers'
 require_relative 'debugtrace/state'
 
+# @author Masato Kokubo
 module DebugTrace
   # Configuration values
   @@config = nil
@@ -64,18 +65,18 @@ module DebugTrace
   end
 
   class PrintOptions
-    attr_reader :minimum_output_count, :minimum_output_length,
+    attr_reader :minimum_output_size, :minimum_output_length,
                 :collection_limit, :bytes_limit, :string_limit, :reflection_limit
 
     def initialize(
-      minimum_output_count,
+      minimum_output_size,
       minimum_output_length,
       collection_limit,
       bytes_limit,
       string_limit,
       reflection_limit
     )
-      @minimum_output_count = minimum_output_count == -1 ? DebugTrace.config.minimum_output_count : minimum_output_count
+      @minimum_output_size = minimum_output_size == -1 ? DebugTrace.config.minimum_output_size : minimum_output_size
       @minimum_output_length = minimum_output_length == -1 ? DebugTrace.config.minimum_output_length : minimum_output_length
       @collection_limit = collection_limit == -1 ? DebugTrace.config.collection_limit : collection_limit
       @bytes_limit = bytes_limit == -1 ? DebugTrace.config.bytes_limit : bytes_limit
@@ -117,6 +118,12 @@ module DebugTrace
       buff.no_break_append(separator).append('nil')
     when FalseClass, TrueClass, Integer, Float
       buff.no_break_append(separator).append(value.to_s)
+    when Symbol
+      buff.no_break_append(separator).append(':').no_break_append(value.name)
+    when Class
+      buff.no_break_append(separator).append(value.name).no_break_append(' class')
+    when Module
+      buff.no_break_append(separator).append(value.name).no_break_append(' module')
     when String
       value_buff = to_string_str(value, print_options)
       buff.append_buffer(separator, value_buff)
@@ -230,7 +237,7 @@ module DebugTrace
 
     if bytes_length >= @@config.minimum_output_length
       buff.no_break_append(' ')
-      buff.no_break_append(format(@@config.length_format, bytes_length))
+      buff.no_break_append(format(@@config.size_format, bytes_length))
     end
 
     buff.no_break_append(') [')
@@ -414,9 +421,9 @@ module DebugTrace
     type_name = value.class.to_s
     type_name = '' if %w[Array Hash Set].include?(type_name)
 
-    if count >= @@config.minimum_output_count
+    if count >= @@config.minimum_output_size
       type_name += ' ' unless type_name.empty?
-      type_name += @@config.count_format % count
+      type_name += @@config.size_format % count
     end
 
     type_name
@@ -453,7 +460,7 @@ module DebugTrace
   @@DO_NOT_OUTPUT = 'Do not output'
 
   def self.print(name, value = @@DO_NOT_OUTPUT,
-      minimum_output_count: -1, minimum_output_length: -1,
+      minimum_output_size: -1, minimum_output_length: -1,
       collection_limit: -1, bytes_limit: -1,
       string_limit: -1, reflection_limit: -1)
     @@thread_mutex.synchronize do
@@ -472,7 +479,7 @@ module DebugTrace
       else
         # with value
         print_options = PrintOptions.new(
-          minimum_output_count, minimum_output_length,
+          minimum_output_size, minimum_output_length,
           collection_limit, bytes_limit,
           string_limit, reflection_limit
         )

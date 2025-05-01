@@ -3,9 +3,11 @@
 require 'yaml'
 require_relative 'common'
 
+# Retains the contents defined in debugtrace.yml.
+# @author Masato Kokubo
 class Config
-  attr_reader :config
   attr_reader :config_path
+  attr_reader :config
   attr_reader :logger_name
   attr_reader :log_path
   attr_reader :logging_format
@@ -22,8 +24,8 @@ class Config
   attr_reader :varname_value_separator
   attr_reader :key_value_separator
   attr_reader :print_suffix_format
-  attr_reader :count_format
-  attr_reader :minimum_output_count
+  attr_reader :size_format
+  attr_reader :minimum_output_size
   attr_reader :length_format
   attr_reader :minimum_output_length
   attr_reader :maximum_data_output_width
@@ -33,6 +35,8 @@ class Config
   attr_reader :string_limit
   attr_reader :reflection_limit
 
+  # Initializes with a yml file in the config_path.
+  # @param config_path [String] path of the yml file
   def initialize(config_path)
     @config_path = Common.check_type('config_path', config_path, String)
     if File.exist?(@config_path)
@@ -58,8 +62,8 @@ class Config
     @varname_value_separator   = get_value 'varname_value_separator'  , ' = '
     @key_value_separator       = get_value 'key_value_separator'      , ': '
     @print_suffix_format       = get_value 'print_suffix_format'      , ' (%2$s:%3$d)'
-    @count_format              = get_value 'count_format'             , 'count:%d'
-    @minimum_output_count      = get_value 'minimum_output_count'     , 16
+    @size_format               = get_value 'size_format'              , 'size:%d'
+    @minimum_output_size       = get_value 'minimum_output_size'      , 16
     @length_format             = get_value 'length_format'            , 'length:%d'
     @minimum_output_length     = get_value 'minimum_output_length'    , 16
     @maximum_data_output_width = get_value 'maximum_data_output_width', 70
@@ -70,14 +74,18 @@ class Config
     @reflection_limit          = get_value 'reflection_limit'         , 4
   end
 
-  def enabled? = @enabled
+  # Returns true if logging is enabled, false otherwise.
+  # @return true if logging is enabled, false otherwise
+  def enabled?
+    @enabled
+  end
 
   private
 
-  # Gets the value related the key from debugtrace.ini file.
-  # @param key (String): The key
-  # @param defalut_value (Object): Value to return when the value related the key is undefined
-  # @return  Object: Value related the key
+  # Gets the value related the key from debugtrace.yml file.
+  # @param key [String] the key
+  # @param defalut_value [Object] value to return if the value related the key is undefined
+  # @return [Object] value related the key
   def get_value(key, defalut_value)
     Common.check_type('key', key, String)
     value = defalut_value

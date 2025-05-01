@@ -3,6 +3,7 @@
 require_relative 'common'
 
 # Have the trace state for a thread
+# @author Masato Kokubo
 class State
   def initialize(thread_id)
     @thread_id = Common::check_type('thread_id', thread_id, Integer)

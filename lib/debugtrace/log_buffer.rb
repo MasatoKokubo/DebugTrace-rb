@@ -3,6 +3,7 @@
 require_relative 'common'
 
 # Buffers logs.
+# @author Masato Kokubo
 class LogBuffer
   class LevelAndLog
     # Initializes this object.
@@ -49,7 +50,7 @@ class LogBuffer
   end
 
   # Appends a string representation of the value.
-  # @param value (Object): The value to append
+  # @param value [Object] The value to append
   # @param nest_level (int, optional): The nest level of the value. Defaults to 0
   # @param no_break (bool, optional): If true, does not break even if the maximum width is exceeded.
   #         Defaults to false
@@ -68,7 +69,7 @@ class LogBuffer
 
   # Appends a string representation of the value.
   # Does not break even if the maximum width is exceeded.
-  # @param value (Object): The value to append
+  # @param value [Object] The value to append
   # @return LogBuffer: This object
   def no_break_append(value)
     append(value, 0, true)
@@ -76,7 +77,7 @@ class LogBuffer
 
   # Appends lines of another LogBuffer.
   # @param
-  # @param separator (String): The separator string to append if not ''
+  # @param separator [String] The separator string to append if not ''
   # @param buff (LogBuffer): Another LogBuffer
   # @returns LogBuffer: This object
   def append_buffer(separator, buff)

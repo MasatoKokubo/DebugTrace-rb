@@ -5,15 +5,16 @@ require_relative 'common'
 require_relative 'config'
 
 # Abstract base class for logger classes.
+# @author Masato Kokubo
 class LoggerBase
   # Outputs the message.
-  # @param message (String): The message to output
+  # @param message [String] The message to output
   def print(message)
     raise 'LoggerBase.print is an abstract method.'
   end
 
   # Returns a string representation of this object.
-  # @return String: A string representation of this object
+  # @return [String] A string representation of this object
   def to_s
     "#{self.class.name}"
   end
@@ -29,7 +30,7 @@ class StdLogger < LoggerBase
   end
 
   # Outputs the message.
-  # @param message (String): The message to output
+  # @param message [String] The message to output
   def print(message)
     Common::check_type("message", message, String)
     datetime_str = Time.now().strftime(@config.logging_datetime_format)
@@ -80,14 +81,14 @@ class RubyLogger
   end
 
   # Outputs the message.
-  # @param message (String): The message to output
+  # @param message [String] The message to output
   def print(message)
     Common::check_type("message", message, String)
     @logger.log(Logger::Severity::DEBUG, message, 'DebugTrace-rb')
   end
 
   # Returns a string representation of this object.
-  # @return String: A string representation of this object
+  # @return [String] A string representation of this object
   def to_s
     "Ruby #{Logger.name} path: #{@config.log_path}"
   end
@@ -134,7 +135,7 @@ class FileLogger < LoggerBase
   end
 
   # Returns a string representation of this object.
-  # @return String: A string representation of this object
+  # @return [String] A string representation of this object
   def to_s
     "#{self.class.name} path: #{@log_path}, append: #{@append}"
   end
