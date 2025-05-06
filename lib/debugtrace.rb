@@ -10,7 +10,7 @@ require_relative 'debugtrace/log_buffer'
 require_relative 'debugtrace/loggers'
 require_relative 'debugtrace/state'
 
-# @author Masato Kokubo
+# The main module of DebugTrace-rb.
 module DebugTrace
   # Configuration values
   @@config = nil
@@ -37,6 +37,9 @@ module DebugTrace
   # The logger used by DebugTrace-py
   @@logger = nil
 
+  # Initialize this class
+  #
+  # @option [String] config_path the path to the configuration file. ./debugtrace.yml if not specified.
   def self.initialize(config_path = './debugtrace.yml')
     @@config = Config.new(config_path)
 
@@ -65,11 +68,22 @@ module DebugTrace
     @@logger.print("  logger: #{@@logger}")
   end
 
+  # Contains options to pass to the print method.
   class PrintOptions
-    attr_reader :minimum_output_size, :minimum_output_length,
+    attr_reader :reflection, :minimum_output_size, :minimum_output_length,
                 :collection_limit, :bytes_limit, :string_limit, :reflection_limit
 
+    # Initializes this object.
+    #
+    # @param reflection [TrueClass, FalseClass] use reflection if true
+    # @param minimum_output_size [Integer] the minimum value to output the number of elements for Array and Hash (overrides debugtarace.yml value)
+    # @param minimum_output_length [Integer] the minimum value to output the length of String and byte array (overrides debugtarace.yml value)
+    # @param collection_limit [Integer] Output limit of collection elements (overrides debugtarace.yml value)
+    # @param bytes_limit [Integer] the limit value of elements for bytes and bytearray to output (overrides debugtarace.yml value)
+    # @param string_limit [Integer] the limit value of characters for string to output (overrides debugtarace.yml value)
+    # @param reflection_limit [Integer] reflection limits when using reflection (overrides debugtarace.yml value)
     def initialize(
+      reflection,
       minimum_output_size,
       minimum_output_length,
       collection_limit,
@@ -77,6 +91,7 @@ module DebugTrace
       string_limit,
       reflection_limit
     )
+      @reflection = reflection
       @minimum_output_size = minimum_output_size == -1 ? DebugTrace.config.minimum_output_size : minimum_output_size
       @minimum_output_length = minimum_output_length == -1 ? DebugTrace.config.minimum_output_length : minimum_output_length
       @collection_limit = collection_limit == -1 ? DebugTrace.config.collection_limit : collection_limit
@@ -86,6 +101,9 @@ module DebugTrace
     end
   end
 
+  # Returns the current state.
+  #
+  # @return [State] the current state
   def self.current_state
     thread_id = Thread.current.object_id
 
@@ -99,12 +117,22 @@ module DebugTrace
     return state
   end
 
+  # Returns the current indent string.
+  #
+  # @param nest_level [Integer] the code nesting level
+  # @param data_nest_level [Integer] the data nesting level
+  # @return [Sring] the current indent string
   def self.get_indent_string(nest_level, data_nest_level)
     indent_str = @@config.indent_string * [[0, nest_level].max, @@config.maximum_indents].min
     data_indent_str = @@config.data_indent_string * [[0, data_nest_level].max, @@config.maximum_indents].min
     return indent_str + data_indent_str
   end
 
+  # Returns a string representation of the variable contents.
+  #
+  # @param name [String] the variable name
+  # @param value [Object] the value
+  # @param print_options [PrintOptions] the print options
   def self.to_string(name, value, print_options)
     buff = LogBuffer.new(@@config.maximum_data_output_width)
 
@@ -126,7 +154,8 @@ module DebugTrace
     when Module
       buff.no_break_append(separator).append(value.name).no_break_append(' module')
     when String
-      value_buff = to_string_str(value, print_options)
+      value_buff = value.encoding == Encoding::ASCII_8BIT ?
+          to_string_bytes(value, print_options) : to_string_str(value, print_options)
       buff.append_buffer(separator, value_buff)
     when DateTime
       buff.no_break_append(separator).append(value.strftime('%Y-%m-%d %H:%M-%S.%L%:z'))
@@ -138,25 +167,33 @@ module DebugTrace
       value_buff = to_string_enumerable(value, print_options)
       buff.append_buffer(separator, value_buff)
     else
-      # use reflection
-      value_buff = LogBuffer.new(@@config.maximum_data_output_width)
-      if @@reflected_objects.any? { |obj| value.equal?(obj) }
-        # cyclic reference
-        value_buff.no_break_append(@@config.cyclic_reference_string)
-      elsif @@reflected_objects.length > print_options.reflection_limit
-        # over reflection level limitation
-        value_buff.no_break_append(@@config.limit_string)
+      if print_options.reflection
+        # use reflection
+        value_buff = LogBuffer.new(@@config.maximum_data_output_width)
+        if @@reflected_objects.any? { |obj| value.equal?(obj) }
+          # cyclic reference
+          value_buff.no_break_append(@@config.cyclic_reference_string)
+        elsif @@reflected_objects.length > print_options.reflection_limit
+          # over reflection level limitation
+          value_buff.no_break_append(@@config.limit_string)
+        else
+          @@reflected_objects.push(value)
+          value_buff = to_string_reflection(value, print_options)
+          @@reflected_objects.pop
+        end
+        buff.append_buffer(separator, value_buff)
       else
-        @@reflected_objects.push(value)
-        value_buff = to_string_reflection(value, print_options)
-        @@reflected_objects.pop
+        buff.no_break_append(separator).append(value.to_s)
       end
-      buff.append_buffer(separator, value_buff)
     end
 
     return buff
   end
 
+  # Returns a string representation of the string value
+  #
+  # @param value [String] the value
+  # @param print_options [PrintOptions] the print options
   def self.to_string_str(value, print_options)
     has_single_quote = false
     has_double_quote = false
@@ -219,16 +256,13 @@ module DebugTrace
     return has_single_quote && !has_double_quote ? double_quote_buff : single_quote_buff
   end
 
+  # Returns a string representation of the string value which encoding is ASCII_8BIT.
+  #
+  # @param value [String] the value
+  # @param print_options [PrintOptions] the print options
   def self.to_string_bytes(value, print_options)
     bytes_length = value.length
     buff = LogBuffer.new(@@config.maximum_data_output_width)
-    buff.no_break_append('(')
-
-    if value.is_a?(String)
-      buff.no_break_append('bytes')
-    elsif value.is_a?(Array)
-      buff.no_break_append('bytearray')
-    end
 
     if bytes_length >= @@config.minimum_output_length
       buff.no_break_append(format(@@config.size_format, bytes_length))
@@ -280,6 +314,10 @@ module DebugTrace
     return buff
   end
 
+  # Returns a string representation of the value using reflection.
+  #
+  # @param value [Object] the value
+  # @param print_options [PrintOptions] the print options
   def self.to_string_reflection(value, print_options)
     buff = LogBuffer.new(@@config.maximum_data_output_width)
 
@@ -306,6 +344,10 @@ module DebugTrace
     return buff
   end
 
+  # Returns a string representation of the value using reflection.
+  #
+  # @param value [Object] the value
+  # @param print_options [PrintOptions] the print options
   def self.to_string_reflection_body(value, print_options)
     buff = LogBuffer.new(@@config.maximum_data_output_width)
 
@@ -330,6 +372,10 @@ module DebugTrace
     return buff
   end
 
+  # Returns a string representation of an Array, Set or Hash.
+  #
+  # @param value [Array, Set, Hash] the value
+  # @param print_options [PrintOptions] the print options
   def self.to_string_enumerable(values, print_options)
     open_char = '[' # Array 
     close_char = ']'
@@ -369,6 +415,10 @@ module DebugTrace
     return buff
   end
 
+  # Returns a string representation of the Array, Set or Hash value.
+  #
+  # @param value [Array, Set, Hash] the value
+  # @param print_options [PrintOptions] the print options
   def self.to_string_enumerable_body(values, print_options)
     buff = LogBuffer.new(@@config.maximum_data_output_width)
 
@@ -403,6 +453,11 @@ module DebugTrace
     return buff
   end
 
+  # Returns a string representation the key and the value.
+  #
+  # @param key [Object] the key
+  # @param value [Object] the value
+  # @param print_options [PrintOptions] the print options
   def self.to_string_key_value(key, value, print_options)
     buff = LogBuffer.new(@@config.maximum_data_output_width)
     key_buff = to_string('', key, print_options)
@@ -411,28 +466,24 @@ module DebugTrace
     buff
   end
 
-  def self.get_type_name(value, count = -1)
+  # Returns the type name.
+  #
+  # @param value [Object] the value
+  # @option size [Object] the size of Array, Set or Hash
+  def self.get_type_name(value, size = -1)
     type_name = value.class.to_s
     type_name = '' if %w[Array Hash Set].include?(type_name)
 
-    if count >= @@config.minimum_output_size
-      type_name += @@config.size_format % count
+    if size >= @@config.minimum_output_size
+      type_name += @@config.size_format % size
     end
 
     return type_name
   end
 
-  def self.has_to_s_method?(value)
-    begin
-      value.public_method('to_s')
-    rescue
-      return false
-    end
-    return true
-  end
-
   @@before_thread_id = nil
 
+  # Called at the start of the print method.
   def self.print_start
     if @@before_thread_id == nil
       DebugTrace.initialize
@@ -452,7 +503,19 @@ module DebugTrace
 
   @@DO_NOT_OUTPUT = 'Do not output'
 
+  # Prints the message or the value.
+  #
+  # @param name [String] a message if the value is not specified, otherwise the value name
+  # @option value [Object] the value
+  # @option reflection [TrueClass, FalseClass] use reflection if true
+  # @option minimum_output_size [Integer] the minimum value to output the number of elements for Array and Hash (overrides debugtarace.yml value)
+  # @option minimum_output_length [Integer] the minimum value to output the length of String and byte array (overrides debugtarace.yml value)
+  # @option collection_limit [Integer] Output limit of collection elements (overrides debugtarace.yml value)
+  # @option bytes_limit [Integer] the limit value of elements for bytes and bytearray to output (overrides debugtarace.yml value)
+  # @option string_limit [Integer] the limit value of characters for string to output (overrides debugtarace.yml value)
+  # @option reflection_limit [Integer] reflection limits when using reflection (overrides debugtarace.yml value)
   def self.print(name, value = @@DO_NOT_OUTPUT,
+      reflection: false,
       minimum_output_size: -1, minimum_output_length: -1,
       collection_limit: -1, bytes_limit: -1,
       string_limit: -1, reflection_limit: -1)
@@ -472,6 +535,7 @@ module DebugTrace
       else
         # with value
         print_options = PrintOptions.new(
+          reflection,
           minimum_output_size, minimum_output_length,
           collection_limit, bytes_limit,
           string_limit, reflection_limit
@@ -503,6 +567,7 @@ module DebugTrace
     return value
   end
 
+  # Prints the start of the method.
   def self.enter
     @@thread_mutex.synchronize do
       print_start
@@ -536,6 +601,10 @@ module DebugTrace
     end
   end
 
+  # Prints the end of the method.
+  #
+  # @option [Object] the return value
+  # @return [Object] return_value if specified, otherwise nil
   def self.leave(return_value = nil)
     @@thread_mutex.synchronize do
       print_start
@@ -564,9 +633,10 @@ module DebugTrace
     end
   end
 
+  # Returns the last print string.
   def self.last_print_string
     lines = @@last_log_buff.lines
-    buff_string = lines.map { |line| _config.data_indent_string * line[0] + line[1] }.join("\n")
+    buff_string = lines.map { |line| @@config.data_indent_string * line.nest_level + line.log }.join("\n")
 
     state = nil
     @@thread_mutex.synchronize do

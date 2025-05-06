@@ -3,17 +3,23 @@
 require_relative 'common'
 
 # Buffers logs.
-# @author Masato Kokubo
 class LogBuffer
+  # Contains a single line indentation level and log content.
   class LevelAndLog
+    attr_reader :nest_level, :log
+
     # Initializes this object.
+    #
+    # @param nest_level [Integer] the nesting level
+    # @param log [String] the log message
     def initialize(nest_level, log)
       @nest_level = Common.check_type('nest_level', nest_level, Integer)
       @log = Common.check_type('log', log, String)
     end
 
-    attr_reader :nest_level, :log
-
+    # Returns a string representation of this object.
+    #
+    # @return [String] a string representation of this object.
     def to_s
       return "(LogBuffer.LevelAndLog){nest_level: #{@nest_level}, log: \"#{@log}\"}"
     end
@@ -50,11 +56,12 @@ class LogBuffer
   end
 
   # Appends a string representation of the value.
+  #
   # @param value [Object] The value to append
   # @param nest_level (int, optional): The nest level of the value. Defaults to 0
   # @param no_break (bool, optional): If true, does not break even if the maximum width is exceeded.
   #         Defaults to false
-  # @return LogBuffer: This object
+  # @return [LogBuffer] this object
   def append(value, nest_level = 0, no_break = false)
     Common.check_type('nest_level', nest_level, Integer)
     Common.check_type('no_break', no_break, TrueClass)
@@ -69,17 +76,18 @@ class LogBuffer
 
   # Appends a string representation of the value.
   # Does not break even if the maximum width is exceeded.
+  #
   # @param value [Object] The value to append
-  # @return LogBuffer: This object
+  # @return [LogBuffer] this object
   def no_break_append(value)
     return append(value, 0, true)
   end
 
   # Appends lines of another LogBuffer.
-  # @param
-  # @param separator [String] The separator string to append if not ''
-  # @param buff (LogBuffer): Another LogBuffer
-  # @returns LogBuffer: This object
+  #
+  # @param separator [String] the separator string to append if not ''
+  # @param buff [LogBuffer] another LogBuffer
+  # @return [LogBuffer] this object
   def append_buffer(separator, buff)
     Common.check_type('separator', separator, String)
     Common.check_type('buff', buff, LogBuffer)
@@ -98,12 +106,16 @@ class LogBuffer
     return @last_line.length
   end
 
-  # true if multiple line, false otherwise.
+  # Returns true if multiple line, false otherwise.
+  #
+  # @return [FalseClass, TrueClass] true if multiple line, false otherwise.
   def multi_lines?
     return @lines.length > 1 || @lines.length == 1 && length > 0
   end
 
-  # A list of tuple of data indentation level && log string.
+  # Returns the LevelAndLog objects.
+  #
+  # @return [Array<LevelAndLog>] the LevelAndLog objects.
   def lines
     lines = @lines.dup
     lines << LevelAndLog.new(@nest_level, @last_line) if length > 0

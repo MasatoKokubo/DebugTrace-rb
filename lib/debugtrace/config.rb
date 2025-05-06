@@ -4,7 +4,6 @@ require 'yaml'
 require_relative 'common'
 
 # Retains the contents defined in debugtrace.yml.
-# @author Masato Kokubo
 class Config
   attr_reader :config_path
   attr_reader :config
@@ -36,6 +35,7 @@ class Config
   attr_reader :reflection_limit
 
   # Initializes with a yml file in the config_path.
+  #
   # @param config_path [String] path of the yml file
   def initialize(config_path)
     @config_path = Common.check_type('config_path', config_path, String)
@@ -75,7 +75,8 @@ class Config
   end
 
   # Returns true if logging is enabled, false otherwise.
-  # @return true if logging is enabled, false otherwise
+  #
+  # @return [TrueClass, FalseClass] true if logging is enabled, false otherwise
   def enabled?
     return @enabled
   end
@@ -83,6 +84,7 @@ class Config
   private
 
   # Gets the value related the key from debugtrace.yml file.
+  #
   # @param key [String] the key
   # @param defalut_value [Object] value to return if the value related the key is undefined
   # @return [Object] value related the key
