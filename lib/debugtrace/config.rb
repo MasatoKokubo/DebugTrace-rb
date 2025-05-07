@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 # config.rb
 # (C) 2025 Masato Kokubo
 require 'yaml'

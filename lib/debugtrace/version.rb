@@ -1,6 +1,6 @@
-# (C) 2025 Masato Kokubo
 # frozen_string_literal: true
+# (C) 2025 Masato Kokubo
 
 module DebugTrace
-  VERSION = '0.2.7'
+  VERSION = '0.3.0'
 end

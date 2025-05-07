@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 # loggers.rb
 # (C) 2023 Masato Kokubo
 require 'logger'

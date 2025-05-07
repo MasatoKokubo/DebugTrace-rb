@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 # log_buffer.rb
 # (C) 2025 Masato Kokubo
 require_relative 'common'

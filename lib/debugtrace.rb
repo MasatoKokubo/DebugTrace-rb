@@ -1,6 +1,9 @@
+# frozen_string_literal: true
 # debugtrace.rb
 # (C) 2025 Masato Kokubo
 require 'logger'
+require 'set'
+require 'date'
 
 # Require necessary files
 require_relative 'debugtrace/version'
@@ -195,8 +198,7 @@ module DebugTrace
   # @param value [String] the value
   # @param print_options [PrintOptions] the print options
   def self.to_string_str(value, print_options)
-    has_single_quote = false
-    has_double_quote = false
+    double_quote = false
     single_quote_buff = LogBuffer.new(@@config.maximum_data_output_width)
     double_quote_buff = LogBuffer.new(@@config.maximum_data_output_width)
 
@@ -217,30 +219,28 @@ module DebugTrace
       end
       case char
       when "'"
-        single_quote_buff.no_break_append("\\'")
+        double_quote = true
         double_quote_buff.no_break_append(char)
-        has_single_quote = true
       when '"'
         single_quote_buff.no_break_append(char)
         double_quote_buff.no_break_append("\\\"")
-        has_double_quote = true
       when "\\"
-        single_quote_buff.no_break_append("\\\\")
+        double_quote = true
         double_quote_buff.no_break_append("\\\\")
       when "\n"
-        single_quote_buff.no_break_append("\\n")
+        double_quote = true
         double_quote_buff.no_break_append("\\n")
       when "\r"
-        single_quote_buff.no_break_append("\\r")
+        double_quote = true
         double_quote_buff.no_break_append("\\r")
       when "\t"
-        single_quote_buff.no_break_append("\\t")
+        double_quote = true
         double_quote_buff.no_break_append("\\t")
       else
         char_ord = char.ord
         if char_ord >= 0x00 && char_ord <= 0x1F || char_ord == 0x7F
+          double_quote = true
           num_str = format('%02X', char_ord)
-          single_quote_buff.no_break_append("\\x" + num_str)
           double_quote_buff.no_break_append("\\x" + num_str)
         else
           single_quote_buff.no_break_append(char)
@@ -253,7 +253,7 @@ module DebugTrace
     double_quote_buff.no_break_append('"')
     single_quote_buff.no_break_append("'")
 
-    return has_single_quote && !has_double_quote ? double_quote_buff : single_quote_buff
+    return double_quote ? double_quote_buff : single_quote_buff
   end
 
   # Returns a string representation of the string value which encoding is ASCII_8BIT.
