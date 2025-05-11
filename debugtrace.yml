@@ -1,2 +1,3 @@
 logger: file
 log_path: logs/debugtrace.log
+maximum_data_output_width: 100

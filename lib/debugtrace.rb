@@ -15,6 +15,10 @@ require_relative 'debugtrace/state'
 
 # The main module of DebugTrace-rb.
 module DebugTrace
+  @@no_reflection_classes = [
+    FalseClass, TrueClass, Integer, Float, Rational, Complex, Range, Regexp,
+  ]
+
   # Configuration values
   @@config = nil
 
@@ -139,54 +143,58 @@ module DebugTrace
   def self.to_string(name, value, print_options)
     buff = LogBuffer.new(@@config.maximum_data_output_width)
 
-    separator = ''
     unless name.empty?
-      buff.append(name)
-      separator = @@config.varname_value_separator
+      buff.append(name).no_break_append(@@config.varname_value_separator)
     end
 
-    case value
-    when nil
-      buff.no_break_append(separator).append('nil')
-    when FalseClass, TrueClass, Integer, Float
-      buff.no_break_append(separator).append(value.to_s)
-    when Symbol
-      buff.no_break_append(separator).append(':').no_break_append(value.name)
-    when Class
-      buff.no_break_append(separator).append(value.name).no_break_append(' class')
-    when Module
-      buff.no_break_append(separator).append(value.name).no_break_append(' module')
-    when String
-      value_buff = value.encoding == Encoding::ASCII_8BIT ?
-          to_string_bytes(value, print_options) : to_string_str(value, print_options)
-      buff.append_buffer(separator, value_buff)
-    when DateTime
-      buff.no_break_append(separator).append(value.strftime('%Y-%m-%d %H:%M-%S.%L%:z'))
-    when Date
-      buff.no_break_append(separator).append(value.strftime('%Y-%m-%d'))
-    when Time
-      buff.no_break_append(separator).append(value.strftime('%H:%M-%S.%L%:z'))
-    when Array, Set, Hash
-      value_buff = to_string_enumerable(value, print_options)
-      buff.append_buffer(separator, value_buff)
+    if @@no_reflection_classes.include?(value.class)
+      buff.append(value.to_s)
     else
-      if print_options.reflection
-        # use reflection
-        value_buff = LogBuffer.new(@@config.maximum_data_output_width)
-        if @@reflected_objects.any? { |obj| value.equal?(obj) }
-          # cyclic reference
-          value_buff.no_break_append(@@config.cyclic_reference_string)
-        elsif @@reflected_objects.length > print_options.reflection_limit
-          # over reflection level limitation
-          value_buff.no_break_append(@@config.limit_string)
-        else
-          @@reflected_objects.push(value)
-          value_buff = to_string_reflection(value, print_options)
-          @@reflected_objects.pop
-        end
-        buff.append_buffer(separator, value_buff)
+      case value
+      when nil
+        buff.append('nil')
+      when Symbol
+        buff.append(':').no_break_append(value.name)
+      when Class
+        buff.append(value.name).no_break_append(' class')
+      when Module
+        buff.append(value.name).no_break_append(' module')
+      when String
+        value_buff = value.encoding == Encoding::ASCII_8BIT ?
+            to_string_bytes(value, print_options) : to_string_str(value, print_options)
+        buff.append_buffer(value_buff)
+      when DateTime, Time
+        buff.append(value.strftime('%Y-%m-%d %H:%M:%S.%L%:z'))
+      when Date
+        buff.append(value.strftime('%Y-%m-%d'))
+      when Dir, File
+        buff.append(value.class.name)
+        buff.append_buffer(to_string_str(value.path, print_options))
+      when Array, Set, Hash
+        value_buff = to_string_enumerable(value, print_options)
+        buff.append_buffer(value_buff)
       else
-        buff.no_break_append(separator).append(value.to_s)
+        reflection = print_options.reflection || value.class.superclass == Struct
+        
+        to_s_string = reflection ? '' : value.to_s 
+        if reflection || to_s_string.start_with?('#<')
+          # use reflection
+          value_buff = LogBuffer.new(@@config.maximum_data_output_width)
+          if @@reflected_objects.any? { |obj| value.equal?(obj) }
+            # cyclic reference
+            value_buff.no_break_append(@@config.cyclic_reference_string)
+          elsif @@reflected_objects.length > print_options.reflection_limit
+            # over reflection level limitation
+            value_buff.no_break_append(@@config.limit_string)
+          else
+            @@reflected_objects.push(value)
+            value_buff = to_string_reflection(value, print_options)
+            @@reflected_objects.pop
+          end
+          buff.append_buffer(value_buff)
+        else
+          buff.append(to_s_string)
+        end
       end
     end
 
@@ -202,7 +210,7 @@ module DebugTrace
     single_quote_buff = LogBuffer.new(@@config.maximum_data_output_width)
     double_quote_buff = LogBuffer.new(@@config.maximum_data_output_width)
 
-    if value.length >= @@config.minimum_output_length
+    if value.length >= print_options.minimum_output_length
       single_quote_buff.no_break_append(format(@@config.length_format, value.length))
       double_quote_buff.no_break_append(format(@@config.length_format, value.length))
     end
@@ -264,8 +272,8 @@ module DebugTrace
     bytes_length = value.length
     buff = LogBuffer.new(@@config.maximum_data_output_width)
 
-    if bytes_length >= @@config.minimum_output_length
-      buff.no_break_append(format(@@config.size_format, bytes_length))
+    if bytes_length >= print_options.minimum_output_length
+      buff.no_break_append(format(@@config.length_format, bytes_length))
     end
 
     buff.no_break_append('[')
@@ -321,7 +329,7 @@ module DebugTrace
   def self.to_string_reflection(value, print_options)
     buff = LogBuffer.new(@@config.maximum_data_output_width)
 
-    buff.append(get_type_name(value))
+    buff.append(get_type_name(value, -1, print_options))
 
     body_buff = to_string_reflection_body(value, print_options)
 
@@ -333,7 +341,7 @@ module DebugTrace
       buff.up_nest
     end
 
-    buff.append_buffer('', body_buff)
+    buff.append_buffer(body_buff)
 
     if multi_lines
       buff.line_feed if buff.length > 0
@@ -350,23 +358,40 @@ module DebugTrace
   # @param print_options [PrintOptions] the print options
   def self.to_string_reflection_body(value, print_options)
     buff = LogBuffer.new(@@config.maximum_data_output_width)
-
-    variables = value.instance_variables
-
     multi_lines = false
     index = 0
+
+    variables = value.instance_variables
     variables.each do |variable|
       buff.no_break_append(', ') if index > 0
 
       var_value = value.instance_variable_get(variable)
       member_buff = LogBuffer.new(@@config.maximum_data_output_width)
-      member_buff.append(variable)
-      member_buff.append_buffer(@@config.key_value_separator, to_string('', var_value, print_options))
+      member_buff.append(variable).no_break_append(@@config.key_value_separator)
+      member_buff.append_buffer(to_string('', var_value, print_options))
       buff.line_feed if index > 0 && (multi_lines || member_buff.multi_lines?)
-      buff.append_buffer('', member_buff)
+      buff.append_buffer(member_buff)
 
       multi_lines = member_buff.multi_lines?
       index += 1
+    end
+
+    if value.class.superclass == Struct
+      members = value.members
+      hash = value.to_h
+      members.each do |member|
+        buff.no_break_append(', ') if index > 0
+
+        var_value = hash[member]
+        member_buff = LogBuffer.new(@@config.maximum_data_output_width)
+        member_buff.append(member).no_break_append(@@config.key_value_separator)
+        member_buff.append_buffer(to_string('', var_value, print_options))
+        buff.line_feed if index > 0 && (multi_lines || member_buff.multi_lines?)
+        buff.append_buffer(member_buff)
+
+        multi_lines = member_buff.multi_lines?
+        index += 1
+      end
     end
 
     return buff
@@ -391,7 +416,7 @@ module DebugTrace
     end
 
     buff = LogBuffer.new(@@config.maximum_data_output_width)
-    buff.append(get_type_name(values, values.length))
+    buff.append(get_type_name(values, values.size, print_options))
     buff.no_break_append(open_char)
 
     body_buff = to_string_enumerable_body(values, print_options)
@@ -403,7 +428,7 @@ module DebugTrace
       buff.up_nest
     end
 
-    buff.append_buffer('', body_buff)
+    buff.append_buffer(body_buff)
 
     if multi_lines
       buff.line_feed
@@ -442,7 +467,7 @@ module DebugTrace
         end
 
       buff.line_feed if index > 0 && (multi_lines || element_buff.multi_lines?)
-      buff.append_buffer('', element_buff)
+      buff.append_buffer(element_buff)
 
       multi_lines = element_buff.multi_lines?
       index += 1
@@ -462,19 +487,20 @@ module DebugTrace
     buff = LogBuffer.new(@@config.maximum_data_output_width)
     key_buff = to_string('', key, print_options)
     value_buff = to_string('', value, print_options)
-    buff.append_buffer('', key_buff).append_buffer(@@config.key_value_separator, value_buff)
+    buff.append_buffer(key_buff).no_break_append(@@config.key_value_separator).append_buffer(value_buff)
     buff
   end
 
   # Returns the type name.
   #
   # @param value [Object] the value
-  # @option size [Object] the size of Array, Set or Hash
-  def self.get_type_name(value, size = -1)
+  # @param size [Object] the size of Array, Set or Hash
+  # @param print_options [PrintOptions] the print options
+  def self.get_type_name(value, size, print_options)
     type_name = value.class.to_s
     type_name = '' if %w[Array Hash Set].include?(type_name)
 
-    if size >= @@config.minimum_output_size
+    if size >= print_options.minimum_output_size
       type_name += @@config.size_format % size
     end
 

@@ -86,17 +86,14 @@ class LogBuffer
 
   # Appends lines of another LogBuffer.
   #
-  # @param separator [String] the separator string to append if not ''
   # @param buff [LogBuffer] another LogBuffer
   # @return [LogBuffer] this object
-  def append_buffer(separator, buff)
-    Common.check_type('separator', separator, String)
+  def append_buffer(buff)
     Common.check_type('buff', buff, LogBuffer)
-    append(separator, 0, true) if separator != ''
     index = 0
     for line in buff.lines
       line_feed if index > 0
-      append(line.log, line.nest_level, index == 0 && separator != '')
+      append(line.log, line.nest_level, true)
       index += 1
     end
     return self
