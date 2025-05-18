@@ -1,0 +1,3 @@
+logger: file
+log_path: +logs/debugtrace.log
+data_output_width: 100

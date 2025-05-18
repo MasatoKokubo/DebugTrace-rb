@@ -44,13 +44,21 @@ module DebugTrace
   # The logger used by DebugTrace-py
   @@logger = nil
 
+  # The before thread id
+  @@before_thread_id = nil
+
+  @@DO_NOT_OUTPUT = 'Do not output'
+
   # Initialize this class
-  #
-  # @option [String] config_path the path to the configuration file. ./debugtrace.yml if not specified.
-  def self.initialize(config_path = './debugtrace.yml')
+  def self.initialize()
+    config_path = ENV['DEBUGTRACE_CONFIG']
+    if config_path == ''
+      config_path = './debugtrace.yml'
+    end
+
     @@config = Config.new(config_path)
 
-    @@last_log_buff = LogBuffer.new(@@config.maximum_data_output_width)
+    @@last_log_buff = LogBuffer.new(@@config.data_output_width)
 
     # Decide the logger class
     case @@config.logger_name.downcase
@@ -69,7 +77,7 @@ module DebugTrace
 
     return unless @@config.enabled?
 
-    config_path = File.expand_path(@@config.config_path)
+    config_path = @@config.config == nil ? @@config.config_path : File.expand_path(@@config.config_path)
     @@logger.print("DebugTrace-rb #{DebugTrace::VERSION} on Ruby #{RUBY_VERSION}")
     @@logger.print("  config file: #{config_path}")
     @@logger.print("  logger: #{@@logger}")
@@ -141,7 +149,7 @@ module DebugTrace
   # @param value [Object] the value
   # @param print_options [PrintOptions] the print options
   def self.to_string(name, value, print_options)
-    buff = LogBuffer.new(@@config.maximum_data_output_width)
+    buff = LogBuffer.new(@@config.data_output_width)
 
     unless name.empty?
       buff.append(name).no_break_append(@@config.varname_value_separator)
@@ -179,10 +187,10 @@ module DebugTrace
         to_s_string = reflection ? '' : value.to_s 
         if reflection || to_s_string.start_with?('#<')
           # use reflection
-          value_buff = LogBuffer.new(@@config.maximum_data_output_width)
+          value_buff = LogBuffer.new(@@config.data_output_width)
           if @@reflected_objects.any? { |obj| value.equal?(obj) }
             # cyclic reference
-            value_buff.no_break_append(@@config.cyclic_reference_string)
+            value_buff.no_break_append(@@config.circular_reference_string)
           elsif @@reflected_objects.length > print_options.reflection_limit
             # over reflection level limitation
             value_buff.no_break_append(@@config.limit_string)
@@ -207,8 +215,8 @@ module DebugTrace
   # @param print_options [PrintOptions] the print options
   def self.to_string_str(value, print_options)
     double_quote = false
-    single_quote_buff = LogBuffer.new(@@config.maximum_data_output_width)
-    double_quote_buff = LogBuffer.new(@@config.maximum_data_output_width)
+    single_quote_buff = LogBuffer.new(@@config.data_output_width)
+    double_quote_buff = LogBuffer.new(@@config.data_output_width)
 
     if value.length >= print_options.minimum_output_length
       single_quote_buff.no_break_append(format(@@config.length_format, value.length))
@@ -270,7 +278,7 @@ module DebugTrace
   # @param print_options [PrintOptions] the print options
   def self.to_string_bytes(value, print_options)
     bytes_length = value.length
-    buff = LogBuffer.new(@@config.maximum_data_output_width)
+    buff = LogBuffer.new(@@config.data_output_width)
 
     if bytes_length >= print_options.minimum_output_length
       buff.no_break_append(format(@@config.length_format, bytes_length))
@@ -327,13 +335,13 @@ module DebugTrace
   # @param value [Object] the value
   # @param print_options [PrintOptions] the print options
   def self.to_string_reflection(value, print_options)
-    buff = LogBuffer.new(@@config.maximum_data_output_width)
+    buff = LogBuffer.new(@@config.data_output_width)
 
     buff.append(get_type_name(value, -1, print_options))
 
     body_buff = to_string_reflection_body(value, print_options)
 
-    multi_lines = body_buff.multi_lines? || buff.length + body_buff.length > @@config.maximum_data_output_width
+    multi_lines = body_buff.multi_lines? || buff.length + body_buff.length > @@config.data_output_width
 
     buff.no_break_append('{')
     if multi_lines
@@ -357,7 +365,7 @@ module DebugTrace
   # @param value [Object] the value
   # @param print_options [PrintOptions] the print options
   def self.to_string_reflection_body(value, print_options)
-    buff = LogBuffer.new(@@config.maximum_data_output_width)
+    buff = LogBuffer.new(@@config.data_output_width)
     multi_lines = false
     index = 0
 
@@ -366,7 +374,7 @@ module DebugTrace
       buff.no_break_append(', ') if index > 0
 
       var_value = value.instance_variable_get(variable)
-      member_buff = LogBuffer.new(@@config.maximum_data_output_width)
+      member_buff = LogBuffer.new(@@config.data_output_width)
       member_buff.append(variable).no_break_append(@@config.key_value_separator)
       member_buff.append_buffer(to_string('', var_value, print_options))
       buff.line_feed if index > 0 && (multi_lines || member_buff.multi_lines?)
@@ -383,7 +391,7 @@ module DebugTrace
         buff.no_break_append(', ') if index > 0
 
         var_value = hash[member]
-        member_buff = LogBuffer.new(@@config.maximum_data_output_width)
+        member_buff = LogBuffer.new(@@config.data_output_width)
         member_buff.append(member).no_break_append(@@config.key_value_separator)
         member_buff.append_buffer(to_string('', var_value, print_options))
         buff.line_feed if index > 0 && (multi_lines || member_buff.multi_lines?)
@@ -415,13 +423,13 @@ module DebugTrace
       close_char = ']'
     end
 
-    buff = LogBuffer.new(@@config.maximum_data_output_width)
+    buff = LogBuffer.new(@@config.data_output_width)
     buff.append(get_type_name(values, values.size, print_options))
     buff.no_break_append(open_char)
 
     body_buff = to_string_enumerable_body(values, print_options)
 
-    multi_lines = body_buff.multi_lines? || buff.length + body_buff.length > @@config.maximum_data_output_width
+    multi_lines = body_buff.multi_lines? || buff.length + body_buff.length > @@config.data_output_width
 
     if multi_lines
       buff.line_feed
@@ -445,7 +453,7 @@ module DebugTrace
   # @param value [Array, Set, Hash] the value
   # @param print_options [PrintOptions] the print options
   def self.to_string_enumerable_body(values, print_options)
-    buff = LogBuffer.new(@@config.maximum_data_output_width)
+    buff = LogBuffer.new(@@config.data_output_width)
 
     multi_lines = false
     index = 0
@@ -484,7 +492,7 @@ module DebugTrace
   # @param value [Object] the value
   # @param print_options [PrintOptions] the print options
   def self.to_string_key_value(key, value, print_options)
-    buff = LogBuffer.new(@@config.maximum_data_output_width)
+    buff = LogBuffer.new(@@config.data_output_width)
     key_buff = to_string('', key, print_options)
     value_buff = to_string('', value, print_options)
     buff.append_buffer(key_buff).no_break_append(@@config.key_value_separator).append_buffer(value_buff)
@@ -507,14 +515,12 @@ module DebugTrace
     return type_name
   end
 
-  @@before_thread_id = nil
-
   # Called at the start of the print method.
   def self.print_start
-    if @@before_thread_id == nil
-      DebugTrace.initialize
-      return unless @@config.enabled?
+    if @@config == nil
+      initialize
     end
+    return unless @@config.enabled?
 
     thread = Thread.current
     thread_id = thread.object_id
@@ -526,8 +532,6 @@ module DebugTrace
     @@logger.print('')
     @@before_thread_id = thread_id
   end
-
-  @@DO_NOT_OUTPUT = 'Do not output'
 
   # Prints the message or the value.
   #
@@ -556,7 +560,7 @@ module DebugTrace
 
       if value.equal? @@DO_NOT_OUTPUT
         # without value
-        @@last_log_buff = LogBuffer.new(@@config.maximum_data_output_width)
+        @@last_log_buff = LogBuffer.new(@@config.data_output_width)
         @@last_log_buff.no_break_append(name)
       else
         # with value
@@ -590,7 +594,7 @@ module DebugTrace
       end
     end
 
-    return value
+    return value.equal? @@DO_NOT_OUTPUT ? nil : value
   end
 
   # Prints the start of the method.
@@ -616,7 +620,7 @@ module DebugTrace
         @@logger.print(indent_string) # Empty Line
       end
 
-      @@last_log_buff = LogBuffer.new(@@config.maximum_data_output_width)
+      @@last_log_buff = LogBuffer.new(@@config.data_output_width)
       @@last_log_buff.no_break_append(
         format(@@config.enter_format, name, filename, lineno, parent_name, parent_filename, parent_lineno)
       )
@@ -649,7 +653,7 @@ module DebugTrace
 
       time = (Time.now.utc - state.down_nest) * 1000 # milliseconds <- seconds
 
-      @@last_log_buff = LogBuffer.new(@@config.maximum_data_output_width)
+      @@last_log_buff = LogBuffer.new(@@config.data_output_width)
       @@last_log_buff.no_break_append(
         format(@@config.leave_format, name, filename, lineno, time)
       )

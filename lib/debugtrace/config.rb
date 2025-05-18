@@ -10,8 +10,8 @@ class Config
   attr_reader :config
   attr_reader :logger_name
   attr_reader :log_path
-  attr_reader :logging_format
-  attr_reader :logging_datetime_format
+  attr_reader :rubylogger_format
+  attr_reader :log_datetime_format
   attr_reader :enter_format
   attr_reader :leave_format
   attr_reader :thread_boundary_format
@@ -19,8 +19,7 @@ class Config
   attr_reader :indent_string
   attr_reader :data_indent_string
   attr_reader :limit_string
-  attr_reader :non_output_string
-  attr_reader :cyclic_reference_string
+  attr_reader :circular_reference_string
   attr_reader :varname_value_separator
   attr_reader :key_value_separator
   attr_reader :print_suffix_format
@@ -28,11 +27,11 @@ class Config
   attr_reader :minimum_output_size
   attr_reader :length_format
   attr_reader :minimum_output_length
-  attr_reader :maximum_data_output_width
+  attr_reader :data_output_width
   attr_reader :bytes_count_in_line
   attr_reader :collection_limit
-  attr_reader :bytes_limit
   attr_reader :string_limit
+  attr_reader :bytes_limit
   attr_reader :reflection_limit
 
   # Initializes with a yml file in the config_path.
@@ -46,33 +45,32 @@ class Config
       @config_path = '<No config file>'
       @config = nil
     end
-    @logger_name               = get_value 'logger'                   , 'stderr'
-    @log_path                  = get_value 'log_path'                 , 'debugtrace.log'
-    @logging_format            = get_value 'logging_format'           , "%2$s %1$s %4$s\n"
-    @logging_datetime_format   = get_value 'logging_datetime_format'  , '%Y-%m-%d %H:%M:%S.%L%:z'
-    @enabled                   = get_value 'enabled'                  , true
-    @enter_format              = get_value 'enter_format'             , 'Enter %1$s (%2$s:%3$d) <- %4$s (%5$s:%6$d)'
-    @leave_format              = get_value 'leave_format'             , 'Leave %1$s (%2$s:%3$d) duration: %4$.3f ms'
-    @thread_boundary_format    = get_value 'thread_boundary_format'   , '______________________________ %1$s #%2$s ______________________________'
-    @maximum_indents           = get_value 'maximum_indents'          , 32
-    @indent_string             = get_value 'indent_string'            , '| '
-    @data_indent_string        = get_value 'data_indent_string'       , '  '
-    @limit_string              = get_value 'limit_string'             , '...'
-    @non_output_string         = get_value 'non_output_string'        , '...'
-    @cyclic_reference_string   = get_value 'cyclic_reference_string'  , '*** Cyclic Reference ***'
-    @varname_value_separator   = get_value 'varname_value_separator'  , ' = '
-    @key_value_separator       = get_value 'key_value_separator'      , ': '
-    @print_suffix_format       = get_value 'print_suffix_format'      , ' (%2$s:%3$d)'
-    @size_format               = get_value 'size_format'              , '(size:%d)'
-    @minimum_output_size       = get_value 'minimum_output_size'      , 256
-    @length_format             = get_value 'length_format'            , '(length:%d)'
-    @minimum_output_length     = get_value 'minimum_output_length'    , 256
-    @maximum_data_output_width = get_value 'maximum_data_output_width', 70
-    @bytes_count_in_line       = get_value 'bytes_count_in_line'      , 16
-    @collection_limit          = get_value 'collection_limit'         , 128
-    @bytes_limit               = get_value 'bytes_limit'              , 256
-    @string_limit              = get_value 'string_limit'             , 256
-    @reflection_limit          = get_value 'reflection_limit'         , 4
+    @logger_name               = get_value 'logger'                    , 'stderr'
+    @log_path                  = get_value 'log_path'                  , 'debugtrace.log'
+    @rubylogger_format         = get_value 'rubylogger_format'         , "%2$s %1$s %4$s\n"
+    @log_datetime_format       = get_value 'log_datetime_format'       , '%Y-%m-%d %H:%M:%S.%L%:z'
+    @enabled                   = get_value 'enabled'                   , true
+    @enter_format              = get_value 'enter_format'              , 'Enter %1$s (%2$s:%3$d) <- %4$s (%5$s:%6$d)'
+    @leave_format              = get_value 'leave_format'              , 'Leave %1$s (%2$s:%3$d) duration: %4$.3f ms'
+    @thread_boundary_format    = get_value 'thread_boundary_format'    , '______________________________ %1$s #%2$d ______________________________'
+    @maximum_indents           = get_value 'maximum_indents'           , 32
+    @indent_string             = get_value 'indent_string'             , '| '
+    @data_indent_string        = get_value 'data_indent_string'        , '  '
+    @limit_string              = get_value 'limit_string'              , '...'
+    @circular_reference_string = get_value 'circular_reference_string' , '*** Circular Reference ***'
+    @varname_value_separator   = get_value 'varname_value_separator'   , ' = '
+    @key_value_separator       = get_value 'key_value_separator'       , ': '
+    @print_suffix_format       = get_value 'print_suffix_format'       , ' (%2$s:%3$d)'
+    @size_format               = get_value 'size_format'               , '(size:%d)'
+    @minimum_output_size       = get_value 'minimum_output_size'       , 256
+    @length_format             = get_value 'length_format'             , '(length:%d)'
+    @minimum_output_length     = get_value 'minimum_output_length'     , 256
+    @data_output_width         = get_value 'data_output_width'         , 70
+    @bytes_count_in_line       = get_value 'bytes_count_in_line'       , 16
+    @collection_limit          = get_value 'collection_limit'          , 128
+    @string_limit              = get_value 'string_limit'              , 256
+    @bytes_limit               = get_value 'bytes_limit'               , 256
+    @reflection_limit          = get_value 'reflection_limit'          , 4
   end
 
   # Returns true if logging is enabled, false otherwise.

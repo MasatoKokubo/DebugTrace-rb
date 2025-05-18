@@ -1,0 +1,28 @@
+logger: stdout
+#logger: stderr
+#logger: file
+#logger: rubylogger
+log_path: logs/debugtrace.log
+rubylogger_format: "%2$s %1$s %3$s %4$s\n"
+log_datetime_format: "%Y/%m/%d %H:%M:%S.%L"
+enabled: true
+enter_format: "┌ %1$s (%2$s:%3$d)"
+leave_format: "└ %1$s (%2$s:%3$d) duration: %4$.2f ms"
+thread_boundary_format: "─────────────────────────────── %1$s #%2$d ──────────────────────────────"
+indent_string: "│ "
+data_indent_string: "⧙ "
+limit_string: "‥‥"
+circular_reference_string: "⤴ "
+varname_value_separator: " == "
+key_value_separator: " => "
+print_suffix_format: " (%2$s/%1$s:%3$d)"
+size_format: "(size=%d)"
+minimum_output_size: 2
+length_format: "(length=%d)"
+minimum_output_length: 6
+data_output_width: 40
+bytes_count_in_line: 32
+collection_limit: 64
+string_limit: 5
+bytes_limit: 64
+reflection_limit: 3

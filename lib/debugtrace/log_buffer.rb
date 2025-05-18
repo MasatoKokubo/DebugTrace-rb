@@ -27,8 +27,8 @@ class LogBuffer
   end
 
   # Initializes this object.
-  def initialize(maximum_data_output_width)
-    @maximum_data_output_width = Common.check_type('maximum_data_output_width', maximum_data_output_width, Integer)
+  def initialize(data_output_width)
+    @data_output_width = Common.check_type('data_output_width', data_output_width, Integer)
     @nest_level = 0
     @append_nest_level = 0
 
@@ -68,7 +68,7 @@ class LogBuffer
     Common.check_type('no_break', no_break, TrueClass)
     unless value.nil?
       string = value.to_s
-      line_feed if !no_break && length > 0 && length + string.length > @maximum_data_output_width
+      line_feed if !no_break && length > 0 && length + string.length > @data_output_width
       @append_nest_level = nest_level
       @last_line += string
     end

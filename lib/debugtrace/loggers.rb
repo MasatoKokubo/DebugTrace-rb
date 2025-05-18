@@ -35,7 +35,7 @@ class StdLogger < LoggerBase
   # @return [String] the message
   def print(message)
     Common::check_type("message", message, String)
-    datetime_str = Time.now().strftime(@config.logging_datetime_format)
+    datetime_str = Time.now().strftime(@config.log_datetime_format)
     @output.puts "#{datetime_str} #{message}"
   end
 
@@ -60,7 +60,7 @@ class StdErrLogger < StdLogger
 end
 
 # A logger class that outputs using Ruby Logger.
-class RubyLogger
+class RubyLogger < LoggerBase
   private
 
   class Formatter
@@ -71,8 +71,8 @@ class RubyLogger
     end
 
     def call(severity, datetime, progname, msg)
-      datetime_str = datetime.strftime(@config.logging_datetime_format)
-      format(@config.logging_format, severity, datetime_str, progname, msg)
+      datetime_str = datetime.strftime(@config.log_datetime_format)
+      format(@config.rubylogger_format, severity, datetime_str, progname, msg)
     end
   end
 
@@ -86,7 +86,7 @@ class RubyLogger
     @logger = Logger.new(
         @config.log_path,
         formatter: Formatter.new(@config),
-        datetime_format: @config.logging_datetime_format)
+        datetime_format: @config.log_datetime_format)
   end
 
   # Outputs the message.
@@ -94,7 +94,7 @@ class RubyLogger
   # @param message [String] The message to output
   def print(message)
     Common::check_type("message", message, String)
-    @logger.log(Logger::Severity::DEBUG, message, 'DebugTrace-rb')
+    @logger.log(Logger::Severity::DEBUG, message, 'DebugTrace')
     return message
   end
 
@@ -146,7 +146,7 @@ class FileLogger < LoggerBase
   def print(message)
     if File.exist?(@log_path)
       File.open(@log_path, 'a') { |file|
-        datetime_str = Time.now().strftime(@config.logging_datetime_format)
+        datetime_str = Time.now().strftime(@config.log_datetime_format)
         file.puts "#{datetime_str} #{message}"
       }
     end
