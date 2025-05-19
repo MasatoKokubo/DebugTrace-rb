@@ -52,7 +52,7 @@ module DebugTrace
   # Initialize this class
   def self.initialize()
     config_path = ENV['DEBUGTRACE_CONFIG']
-    if config_path == ''
+    if config_path == nil || config_path.empty?
       config_path = './debugtrace.yml'
     end
 

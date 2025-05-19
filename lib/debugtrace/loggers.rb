@@ -11,7 +11,7 @@ class LoggerBase
   # @param message [String] The message to output
   # @raise [Exception] always
   def print(message)
-    raise Exception.new('LoggerBase.print is an abstract method.')
+    raise Exception, 'LoggerBase.print is an abstract method.'
   end
 
   # Returns a string representation of this object.

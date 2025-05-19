@@ -38,7 +38,7 @@ class Config
   #
   # @param config_path [String] path of the yml file
   def initialize(config_path)
-    @config_path = Common.check_type('config_path', config_path, String)
+    @config_path = config_path
     if File.exist?(@config_path)
       @config = YAML.load_file(@config_path)
     else
