@@ -93,7 +93,7 @@ class LogBuffer
     index = 0
     for line in buff.lines
       line_feed if index > 0
-      append(line.log, line.nest_level, true)
+      append(line.log, line.nest_level)
       index += 1
     end
     return self

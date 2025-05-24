@@ -86,32 +86,29 @@ module DebugTrace
   # Contains options to pass to the print method.
   class PrintOptions
     attr_reader :reflection, :minimum_output_size, :minimum_output_length,
-                :collection_limit, :bytes_limit, :string_limit, :reflection_limit
+                :output_size_limit, :output_length_limit, :reflection_limit
 
     # Initializes this object.
     #
     # @param reflection [TrueClass, FalseClass] use reflection if true
     # @param minimum_output_size [Integer] the minimum value to output the number of elements for Array and Hash (overrides debugtarace.yml value)
     # @param minimum_output_length [Integer] the minimum value to output the length of String and byte array (overrides debugtarace.yml value)
-    # @param collection_limit [Integer] Output limit of collection elements (overrides debugtarace.yml value)
-    # @param bytes_limit [Integer] the limit value of elements for bytes and bytearray to output (overrides debugtarace.yml value)
-    # @param string_limit [Integer] the limit value of characters for string to output (overrides debugtarace.yml value)
+    # @param output_size_limit [Integer] Output limit of collection elements (overrides debugtarace.yml value)
+    # @param output_length_limit [Integer] the limit value of characters for string to output (overrides debugtarace.yml value)
     # @param reflection_limit [Integer] reflection limits when using reflection (overrides debugtarace.yml value)
     def initialize(
       reflection,
       minimum_output_size,
       minimum_output_length,
-      collection_limit,
-      bytes_limit,
-      string_limit,
+      output_size_limit,
+      output_length_limit,
       reflection_limit
     )
       @reflection = reflection
       @minimum_output_size = minimum_output_size == -1 ? DebugTrace.config.minimum_output_size : minimum_output_size
       @minimum_output_length = minimum_output_length == -1 ? DebugTrace.config.minimum_output_length : minimum_output_length
-      @collection_limit = collection_limit == -1 ? DebugTrace.config.collection_limit : collection_limit
-      @bytes_limit = bytes_limit == -1 ? DebugTrace.config.bytes_limit : bytes_limit
-      @string_limit = string_limit == -1 ? DebugTrace.config.string_limit : string_limit
+      @output_size_limit = output_size_limit == -1 ? DebugTrace.config.output_size_limit : output_size_limit
+      @output_length_limit = output_length_limit == -1 ? DebugTrace.config.output_length_limit : output_length_limit
       @reflection_limit = reflection_limit == -1 ? DebugTrace.config.reflection_limit : reflection_limit
     end
   end
@@ -228,7 +225,7 @@ module DebugTrace
 
     count = 1
     value.each_char do |char|
-      if count > print_options.string_limit
+      if count > print_options.output_length_limit
         single_quote_buff.no_break_append(@@config.limit_string)
         double_quote_buff.no_break_append(@@config.limit_string)
         break
@@ -302,7 +299,7 @@ module DebugTrace
         buff.line_feed
         chars = ''
       end
-      if count >= print_options.bytes_limit
+      if count >= print_options.output_length_limit
         buff.no_break_append(@@config.limit_string)
         break
       end
@@ -414,11 +411,11 @@ module DebugTrace
     close_char = ']'
 
     if values.is_a?(Hash)
-      # Array
+      # Hash
       open_char = '{'
       close_char = '}'
     elsif values.is_a?(Set)
-      # Sete
+      # Set
       open_char = 'Set['
       close_char = ']'
     end
@@ -461,7 +458,7 @@ module DebugTrace
     values.each do |element|
       buff.no_break_append(', ') if index > 0
 
-      if index >= print_options.collection_limit
+      if index >= print_options.output_size_limit
         buff.append(@@config.limit_string)
         break
       end
@@ -540,15 +537,12 @@ module DebugTrace
   # @option reflection [TrueClass, FalseClass] use reflection if true
   # @option minimum_output_size [Integer] the minimum value to output the number of elements for Array and Hash (overrides debugtarace.yml value)
   # @option minimum_output_length [Integer] the minimum value to output the length of String and byte array (overrides debugtarace.yml value)
-  # @option collection_limit [Integer] Output limit of collection elements (overrides debugtarace.yml value)
-  # @option bytes_limit [Integer] the limit value of elements for bytes and bytearray to output (overrides debugtarace.yml value)
-  # @option string_limit [Integer] the limit value of characters for string to output (overrides debugtarace.yml value)
+  # @option output_size_limit [Integer] Output limit of collection elements (overrides debugtarace.yml value)
+  # @option output_length_limit [Integer] the limit value of characters for string to output (overrides debugtarace.yml value)
   # @option reflection_limit [Integer] reflection limits when using reflection (overrides debugtarace.yml value)
   def self.print(name, value = @@DO_NOT_OUTPUT,
-      reflection: false,
-      minimum_output_size: -1, minimum_output_length: -1,
-      collection_limit: -1, bytes_limit: -1,
-      string_limit: -1, reflection_limit: -1)
+      reflection: false, minimum_output_size: -1, minimum_output_length: -1,
+      output_size_limit: -1, output_length_limit: -1, reflection_limit: -1)
     @@thread_mutex.synchronize do
       print_start
       return value unless @@config.enabled?
@@ -565,10 +559,8 @@ module DebugTrace
       else
         # with value
         print_options = PrintOptions.new(
-          reflection,
-          minimum_output_size, minimum_output_length,
-          collection_limit, bytes_limit,
-          string_limit, reflection_limit
+          reflection, minimum_output_size, minimum_output_length,
+          output_size_limit, output_length_limit, reflection_limit
         )
         @@last_log_buff = to_string(name, value, print_options)
       end

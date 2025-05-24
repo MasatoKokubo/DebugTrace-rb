@@ -22,7 +22,6 @@ length_format: "(length=%d)"
 minimum_output_length: 6
 data_output_width: 40
 bytes_count_in_line: 32
-collection_limit: 64
-string_limit: 5
-bytes_limit: 64
+output_size_limit: 64
+output_length_limit: 5
 reflection_limit: 3

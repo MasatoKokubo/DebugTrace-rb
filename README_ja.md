@@ -138,8 +138,8 @@ DebugTraceモジュールには以下のメソッドがあります。
       <small><i>以降の引数は、debugtrace.ymlで指定可能 (引数指定が優先)</i></small><br>
       <code>minimum_output_size</code>: <code>Array</code>, <code>Hash</code>および<code>Set</code>の要素数を出力する最小要素数<br>
       <code>minimum_output_length</code>: 文字列の長さを出力する最小の長さ<br>
-      <code>collection_limit</code>: <code>Map</code>, <code>Hash</code>および<code>Set</code>の要素の出力数の制限値<br>
-      <code>string_limit</code>: 文字列の出力文字数の制限値<br>
+      <code>output_size_limit</code>: <code>Array</code>, <code>Hash</code>および<code>Set</code>の要素の出力数の制限値<br>
+      <code>output_length_limit</code>: 文字列の出力文字数の制限値<br>
       <code>reflection_limit</code>: リフレクションのネスト数の制限値<br>
     </td>
     <td>値の指定があれば引数値、なければ<code>nil</code></td>
@@ -525,44 +525,30 @@ debugtrace.ymlには以下のプロパティを指定できます。
     </td>
   </tr>
   <tr>
-    <td><code>collection_limit</code></td>
+    <td><code>output_size_limit</code></td>
     <td>
       Array</code>, <code>Hash</code>および<code>Set</code>の要素の出力数の制限値<br>
       <small><b>設定例:</b></small>
       <ul>
-        <code>collection_limit: 64</code>
+        <code>output_size_limit: 64</code>
       </ul>
       <small><b>初期値:</b></small>
       <ul>
-        <code>collection_limit: 128</code>
+        <code>output_size_limit: 128</code>
       </ul>
     </td>
   </tr>
   <tr>
-    <td><code>string_limit</code></td>
+    <td><code>output_length_limit</code></td>
     <td>
       文字列の出力文字数の制限値<br>
       <small><b>設定例:</b></small>
       <ul>
-        <code>string_limit: 64</code>
+        <code>output_length_limit: 64</code>
       </ul>
       <small><b>初期値:</b></small>
       <ul>
-        <code>string_limit: 256</code>
-      </ul>
-    </td>
-  </tr>
-  <tr>
-    <td><code>bytes_limit</code></td>
-    <td>
-      文字列をバイト配列として出力する場合のの出力数の制限値<br>
-      <small><b>設定例:</b></small>
-      <ul>
-        <code>bytes_limit: 64</code>
-      </ul>
-      <small><b>初期値:</b></small>
-      <ul>
-        <code>bytes_limit: 256</code>
+        <code>output_length_limit: 256</code>
       </ul>
     </td>
   </tr>
@@ -582,7 +568,11 @@ debugtrace.ymlには以下のプロパティを指定できます。
   </tr>
 </table>
 
-### 6. ライセンス
+### 6. 修正履歴
+
+[修正履歴](CHANGELOG_ja.md)
+
+### 7. ライセンス
 
 [MIT ライセンス(MIT)](LICENSE.txt)
 

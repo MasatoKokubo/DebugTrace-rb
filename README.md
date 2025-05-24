@@ -140,8 +140,8 @@ DebugTrace module has the following methods.
       <small><i>The following arguments can be specified in debugtrace.yml (argument specification takes precedence)</i></small><br>
       <code>minimum_output_size</code>: The minimum number of elements to print for <code>Array</code>, <code>Hash</code> and <code>Set</code><br>
       <code>minimum_output_length</code>: The minimum length to print the length of the string<br>
-      <code>collection_limit</code>: The limit on the number of elements output for <code>Map</code>, <code>Hash</code> and <code>Set</code><br>
-      <code>string_limit</code>: The limit on the number of characters that can be output from a string<br>
+      <code>output_size_limit</code>: The limit on the number of elements output for <code>Map</code>, <code>Hash</code> and <code>Set</code><br>
+      <code>output_length_limit</code>: The limit on the number of characters that can be output from a string<br>
       <code>reflection_limit</code>: The limit of reflection nesting<br>
     </td>
     <td>the argument value if it is specified, otherwise <code>nil</code></td>
@@ -527,44 +527,30 @@ You can specify the following properties in debugtrace.yml.
     </td>
   </tr>
   <tr>
-    <td><code>collection_limit</code></td>
+    <td><code>output_size_limit</code></td>
     <td>
       The limit on the number of elements output for <code>Array</code>, <code>Hash</code>, and <code>Set</code><br>
       <small><b>Example:</b></small>
       <ul>
-        <code>collection_limit: 64</code>
+        <code>output_size_limit: 64</code>
       </ul>
       <small><b>Default Value:</b></small>
       <ul>
-        <code>collection_limit: 128</code>
+        <code>output_size_limit: 128</code>
       </ul>
     </td>
   </tr>
   <tr>
-    <td><code>string_limit</code></td>
+    <td><code>output_length_limit</code></td>
     <td>
-      文字列の出力文字数の制限値<br>
+      The limit on the number of characters that can be output from a string<br>
       <small><b>Example:</b></small>
       <ul>
-        <code>string_limit: 64</code>
+        <code>output_length_limit: 64</code>
       </ul>
       <small><b>Default Value:</b></small>
       <ul>
-        <code>string_limit: 256</code>
-      </ul>
-    </td>
-  </tr>
-  <tr>
-    <td><code>bytes_limit</code></td>
-    <td>
-      The limit on the number of characters to be output a string as a byte array<br>
-      <small><b>Example:</b></small>
-      <ul>
-        <code>bytes_limit: 64</code>
-      </ul>
-      <small><b>Default Value:</b></small>
-      <ul>
-        <code>bytes_limit: 256</code>
+        <code>output_length_limit: 256</code>
       </ul>
     </td>
   </tr>
@@ -584,7 +570,11 @@ You can specify the following properties in debugtrace.yml.
   </tr>
 </table>
 
-### 6. License
+### 6. CHANGELOG
+
+[CHANGELOG](CHANGELOG.md)
+
+### 7. License
 
 [MIT License(MIT)](LICENSE.txt)
 

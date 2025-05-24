@@ -26,10 +26,10 @@ class DebugTraceTest3 < Test::Unit::TestCase
   test 'print Array over limit' do
     DebugTrace.enter
     array = [1, 2, 3, 4, 5, 6]
-    DebugTrace.print('array', array, collection_limit: 6)
+    DebugTrace.print('array', array, output_size_limit: 6)
     assert_match(/ array = \[1, 2, 3, 4, 5, 6\] /, DebugTrace.last_print_string)
 
-    DebugTrace.print('array', array, collection_limit: 5)
+    DebugTrace.print('array', array, output_size_limit: 5)
     assert_match(/ array = \[1, 2, 3, 4, 5, \.\.\.\] /, DebugTrace.last_print_string)
     DebugTrace.leave
   end
@@ -56,10 +56,10 @@ class DebugTraceTest3 < Test::Unit::TestCase
   test 'print Set over limit' do
     DebugTrace.enter
     set = Set.new([1, 2, 3, 4, 5, 6])
-    DebugTrace.print('set', set, collection_limit: 6)
+    DebugTrace.print('set', set, output_size_limit: 6)
     assert_match(/ set = Set\[1, 2, 3, 4, 5, 6\] /, DebugTrace.last_print_string)
 
-    DebugTrace.print('set', set, collection_limit: 5)
+    DebugTrace.print('set', set, output_size_limit: 5)
     assert_match(/ set = Set\[1, 2, 3, 4, 5, \.\.\.\] /, DebugTrace.last_print_string)
     DebugTrace.leave
   end
@@ -86,10 +86,10 @@ class DebugTraceTest3 < Test::Unit::TestCase
   test 'print Hash over limit' do
     DebugTrace.enter
     hash = {'A' => 'a', 'B' => 'b', 'C' => 'c', 'D' => 'd', 'E' => 'e', 'F' => 'f'}
-    DebugTrace.print('hash', hash, collection_limit: 6)
+    DebugTrace.print('hash', hash, output_size_limit: 6)
     assert_match(/ hash = {'A': 'a', 'B': 'b', 'C': 'c', 'D': 'd', 'E': 'e', 'F': 'f'} /, DebugTrace.last_print_string)
 
-    DebugTrace.print('hash', hash, collection_limit: 5)
+    DebugTrace.print('hash', hash, output_size_limit: 5)
     assert_match(/ hash = {'A': 'a', 'B': 'b', 'C': 'c', 'D': 'd', 'E': 'e', \.\.\.\} /, DebugTrace.last_print_string)
     DebugTrace.leave
   end

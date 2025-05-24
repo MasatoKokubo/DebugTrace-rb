@@ -122,10 +122,10 @@ class DebugTraceTest1 < Test::Unit::TestCase
   test 'print String length over limit' do
     DebugTrace.enter
     string = 'ABCDEF'
-    DebugTrace.print('string', string, string_limit: 6)
+    DebugTrace.print('string', string, output_length_limit: 6)
     assert_match(/ string = 'ABCDEF' /, DebugTrace.last_print_string)
 
-    DebugTrace.print('string', string, string_limit: 5)
+    DebugTrace.print('string', string, output_length_limit: 5)
     assert_match(/ string = 'ABCDE...' /, DebugTrace.last_print_string)
     DebugTrace.leave
   end
@@ -163,10 +163,10 @@ class DebugTraceTest1 < Test::Unit::TestCase
   test 'print byte array over limit' do
     DebugTrace.enter
     bytes = '@ABCDE'.force_encoding(Encoding::ASCII_8BIT)
-    DebugTrace.print('bytes', bytes,  bytes_limit: 6)
+    DebugTrace.print('bytes', bytes,  output_length_limit: 6)
     assert_match(/ bytes = \[40 41 42 43 44 45 \| @ABCDE\] /, DebugTrace.last_print_string)
 
-    DebugTrace.print('bytes', bytes,  bytes_limit: 5)
+    DebugTrace.print('bytes', bytes,  output_length_limit: 5)
     assert_match(/ bytes = \[40 41 42 43 44 \.\.\.\| @ABCD\] /, DebugTrace.last_print_string)
     DebugTrace.leave
   end
