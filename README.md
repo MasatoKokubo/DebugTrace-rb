@@ -63,47 +63,46 @@ def func2
     Contact.new(1, 'Akane' , 'Apple', Date.new(1991, 2, 3)),
     Contact.new(2, 'Yukari', 'Apple', Date.new(1992, 3, 4))
   ]
-  DebugTrace.print('contacts', contacts)
-  DebugTrace.leave
+  DebugTrace.leave(contacts)
 end
 
 def func1
   DebugTrace.enter
   DebugTrace.print('Hello, World!')
-  func2
-  DebugTrace.leave
+  contacts = func2
+  DebugTrace.leave(contacts)
 end
 
 func1
 ```
 
 ```log
-2025-05-17 20:38:04.084+09:00 DebugTrace-rb 1.0.0 on Ruby 3.4.4
-2025-05-17 20:38:04.084+09:00   config file: <No config file>
-2025-05-17 20:38:04.084+09:00   logger: StdErrLogger
-2025-05-17 20:38:04.084+09:00 
-2025-05-17 20:38:04.084+09:00 ______________________________  #72 ______________________________
-2025-05-17 20:38:04.084+09:00 
-2025-05-17 20:38:04.085+09:00 Enter func1 (readme-example.rb:30) <- <main> (readme-example.rb:36)
-2025-05-17 20:38:04.085+09:00 | Hello, World! (readme-example.rb:31)
-2025-05-17 20:38:04.085+09:00 | Enter func2 (readme-example.rb:20) <- func1 (readme-example.rb:32)
-2025-05-17 20:38:04.085+09:00 | | Enter initialize (readme-example.rb:10) <- new (readme-example.rb:22)
-2025-05-17 20:38:04.085+09:00 | | Leave initialize (readme-example.rb:15) duration: 0.015 ms
-2025-05-17 20:38:04.085+09:00 | | 
-2025-05-17 20:38:04.085+09:00 | | Enter initialize (readme-example.rb:10) <- new (readme-example.rb:23)
-2025-05-17 20:38:04.085+09:00 | | Leave initialize (readme-example.rb:15) duration: 0.010 ms
-2025-05-17 20:38:04.085+09:00 | | 
-2025-05-17 20:38:04.085+09:00 | | contacts = [
-2025-05-17 20:38:04.085+09:00 | |   Contact{
-2025-05-17 20:38:04.085+09:00 | |     @id: 1, @firstName: 'Akane', @lastName: 'Apple', @birthday: 1991-02-03
-2025-05-17 20:38:04.085+09:00 | |   },
-2025-05-17 20:38:04.085+09:00 | |   Contact{
-2025-05-17 20:38:04.085+09:00 | |     @id: 2, @firstName: 'Yukari', @lastName: 'Apple', @birthday: 1992-03-04
-2025-05-17 20:38:04.085+09:00 | |   }
-2025-05-17 20:38:04.085+09:00 | | ] (readme-example.rb:25)
-2025-05-17 20:38:04.085+09:00 | | 
-2025-05-17 20:38:04.085+09:00 | Leave func2 (readme-example.rb:26) duration: 0.789 ms
-2025-05-17 20:38:04.085+09:00 Leave func1 (readme-example.rb:33) duration: 0.937 ms
+2025-07-01 19:12:34.756+09:00 DebugTrace-rb 1.1.1 on Ruby 3.4.4
+2025-07-01 19:12:34.756+09:00   config file: <No config file>
+2025-07-01 19:12:34.756+09:00   logger: StdErrLogger
+2025-07-01 19:12:34.756+09:00 
+2025-07-01 19:12:34.756+09:00 ______________________________  #72 ______________________________
+2025-07-01 19:12:34.756+09:00 
+2025-07-01 19:12:34.756+09:00 Enter func1 (readme-example.rb:29) <- <main> (readme-example.rb:35)
+2025-07-01 19:12:34.756+09:00 | Hello, World! (readme-example.rb:30)
+2025-07-01 19:12:34.756+09:00 | Enter func2 (readme-example.rb:20) <- func1 (readme-example.rb:31)
+2025-07-01 19:12:34.756+09:00 | | Enter initialize (readme-example.rb:10) <- new (readme-example.rb:22)
+2025-07-01 19:12:34.756+09:00 | | Leave initialize (readme-example.rb:15) duration: 0.012 ms
+2025-07-01 19:12:34.756+09:00 | | 
+2025-07-01 19:12:34.756+09:00 | | Enter initialize (readme-example.rb:10) <- new (readme-example.rb:23)
+2025-07-01 19:12:34.756+09:00 | | Leave initialize (readme-example.rb:15) duration: 0.008 ms
+2025-07-01 19:12:34.756+09:00 | Leave func2 (readme-example.rb:25) duration: 0.236 ms
+2025-07-01 19:12:34.757+09:00 Leave func1 (readme-example.rb:32) duration: 0.365 ms
+2025-07-01 19:12:34.757+09:00 
+2025-07-01 19:12:34.757+09:00 contacts = [
+2025-07-01 19:12:34.757+09:00   Contact{
+2025-07-01 19:12:34.757+09:00     @id: 1, @firstName: 'Akane', @lastName: 'Apple', @birthday: 1991-02-03
+2025-07-01 19:12:34.757+09:00   },
+2025-07-01 19:12:34.757+09:00   Contact{
+2025-07-01 19:12:34.757+09:00     @id: 2, @firstName: 'Yukari', @lastName: 'Apple',
+2025-07-01 19:12:34.757+09:00     @birthday: 1992-03-04
+2025-07-01 19:12:34.757+09:00   }
+2025-07-01 19:12:34.757+09:00 ] (readme-example.rb:36)
 ```
 
 ### 4. List of methods
@@ -578,5 +577,5 @@ You can specify the following properties in debugtrace.yml.
 
 [MIT License(MIT)](LICENSE.txt)
 
-_(C) 2025 Masato Kokubo_
+_&copy; 2025 Masato Kokubo_
 

@@ -9,6 +9,7 @@ require 'date'
 require_relative 'debugtrace/version'
 require_relative 'debugtrace/common'
 require_relative 'debugtrace/config'
+require_relative 'debugtrace/location'
 require_relative 'debugtrace/log_buffer'
 require_relative 'debugtrace/loggers'
 require_relative 'debugtrace/state'
@@ -566,13 +567,10 @@ module DebugTrace
       end
 
       # append print suffix
-      location = caller_locations(3, 3)[0]
-      name     = !location.nil? ? location.base_label : ''
-      filename = !location.nil? ? File.basename(location.absolute_path) : ''
-      lineno   = !location.nil? ? location.lineno : 0
+      location = Location.new(caller_locations(3, 3)[0])
 
       @@last_log_buff.no_break_append(
-        format(@@config.print_suffix_format, name, filename, lineno)
+        format(@@config.print_suffix_format, location.name, location.filename, location.lineno)
       )
 
       @@last_log_buff.line_feed
@@ -596,16 +594,8 @@ module DebugTrace
       return unless @@config.enabled?
 
       state = current_state
-
-      location = caller_locations(3, 3)[0]
-      name     = !location.nil? ? location.base_label : ''
-      filename = !location.nil? ? File.basename(location.absolute_path) : ''
-      lineno   = !location.nil? ? location.lineno : 0
-
-      parent_location = caller_locations(4, 4)[0]
-      parent_name     = !parent_location.nil? ? parent_location.base_label : ''
-      parent_filename = !parent_location.nil? ? File.basename(parent_location.absolute_path) : ''
-      parent_lineno   = !parent_location.nil? ? parent_location.lineno : 0
+      location = Location.new(caller_locations(3, 3)[0])
+      parent_location = Location.new(caller_locations(4, 4)[0])
 
       indent_string = get_indent_string(state.nest_level, 0)
       if state.nest_level < state.previous_nest_level || @@last_log_buff.multi_lines?
@@ -614,7 +604,9 @@ module DebugTrace
 
       @@last_log_buff = LogBuffer.new(@@config.data_output_width)
       @@last_log_buff.no_break_append(
-        format(@@config.enter_format, name, filename, lineno, parent_name, parent_filename, parent_lineno)
+        format(@@config.enter_format,
+          location.name, location.filename, location.lineno,
+          parent_location.name, parent_location.filename, parent_location.lineno)
       )
       @@last_log_buff.line_feed
       @@logger.print(indent_string + @@last_log_buff.lines[0].log)
@@ -633,11 +625,7 @@ module DebugTrace
       return return_value unless @@config.enabled?
 
       state = current_state
-
-      location = caller_locations(3, 3)[0]
-      name = location.base_label
-      filename = File.basename(location.absolute_path)
-      lineno = location.lineno
+      location = Location.new(caller_locations(3, 3)[0])
 
       if @@last_log_buff.multi_lines?
         @@logger.print(get_indent_string(state.nest_level, 0)) # Empty Line
@@ -647,7 +635,7 @@ module DebugTrace
 
       @@last_log_buff = LogBuffer.new(@@config.data_output_width)
       @@last_log_buff.no_break_append(
-        format(@@config.leave_format, name, filename, lineno, time)
+        format(@@config.leave_format, location.name, location.filename, location.lineno, time)
       )
       @@last_log_buff.line_feed
       @@logger.print(get_indent_string(state.nest_level, 0) + @@last_log_buff.lines[0].log)

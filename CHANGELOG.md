@@ -1,3 +1,8 @@
+## 1.1.1 - July 1, 2025
+
+### Bug fixes
+* Fixed a bug that caused exceptions to be thrown by the `enter`, `leave` and `print` methods depending on the conditions.
+
 ## 1.1.0 - May 25, 2025
 
 ### Bug fixes
