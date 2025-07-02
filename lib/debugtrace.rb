@@ -181,25 +181,29 @@ module DebugTrace
         buff.append_buffer(value_buff)
       else
         reflection = print_options.reflection || value.class.superclass == Struct
-        
-        to_s_string = reflection ? '' : value.to_s 
-        if reflection || to_s_string.start_with?('#<')
-          # use reflection
-          value_buff = LogBuffer.new(@@config.data_output_width)
-          if @@reflected_objects.any? { |obj| value.equal?(obj) }
-            # cyclic reference
-            value_buff.no_break_append(@@config.circular_reference_string)
-          elsif @@reflected_objects.length > print_options.reflection_limit
-            # over reflection level limitation
-            value_buff.no_break_append(@@config.limit_string)
+
+        begin
+          to_s_string = reflection ? '' : value.to_s 
+          if reflection || to_s_string.start_with?('#<')
+            # use reflection
+            value_buff = LogBuffer.new(@@config.data_output_width)
+            if @@reflected_objects.any? { |obj| value.equal?(obj) }
+              # cyclic reference
+              value_buff.no_break_append(@@config.circular_reference_string)
+            elsif @@reflected_objects.length > print_options.reflection_limit
+              # over reflection level limitation
+              value_buff.no_break_append(@@config.limit_string)
+            else
+              @@reflected_objects.push(value)
+              value_buff = to_string_reflection(value, print_options)
+              @@reflected_objects.pop
+            end
+            buff.append_buffer(value_buff)
           else
-            @@reflected_objects.push(value)
-            value_buff = to_string_reflection(value, print_options)
-            @@reflected_objects.pop
+            buff.append(to_s_string)
           end
-          buff.append_buffer(value_buff)
-        else
-          buff.append(to_s_string)
+        rescue => e
+          buff.append("Raised #{e.class.to_s}: '#{e.message}'")
         end
       end
     end

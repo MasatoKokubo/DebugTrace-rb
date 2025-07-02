@@ -1,11 +1,14 @@
+## 1.1.2 - July 2, 2025
+
+Fixed a bug that caused exceptions to be thrown by the `print` methods depending on the conditions.
+
 ## 1.1.1 - July 1, 2025
 
-### Bug fixes
-* Fixed a bug that caused exceptions to be thrown by the `enter`, `leave` and `print` methods depending on the conditions.
+Fixed a bug that caused exceptions to be thrown by the `enter`, `leave` and `print` methods depending on the conditions.
 
 ## 1.1.0 - May 25, 2025
 
-### Bug fixes
+### Bug fix
 
 * Fixed a bug where line breaks were not inserted between elements when outputting `Array`, `Hash`, and `Set` using the print method.
 
