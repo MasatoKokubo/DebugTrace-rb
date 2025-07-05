@@ -1,3 +1,8 @@
+## 1.2.0 - July 5, 2025
+
+* Changed source file name output to a relative path from the current directory.
+* Added class name to method name output.
+
 ## 1.1.2 - July 2, 2025
 
 Fixed a bug that caused exceptions to be thrown by the `print` methods depending on the conditions.

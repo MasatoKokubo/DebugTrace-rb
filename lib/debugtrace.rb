@@ -574,7 +574,7 @@ module DebugTrace
       location = Location.new(caller_locations(3, 3)[0])
 
       @@last_log_buff.no_break_append(
-        format(@@config.print_suffix_format, location.name, location.filename, location.lineno)
+        format(@@config.print_suffix_format, location.name, location.path, location.lineno)
       )
 
       @@last_log_buff.line_feed
@@ -609,14 +609,15 @@ module DebugTrace
       @@last_log_buff = LogBuffer.new(@@config.data_output_width)
       @@last_log_buff.no_break_append(
         format(@@config.enter_format,
-          location.name, location.filename, location.lineno,
-          parent_location.name, parent_location.filename, parent_location.lineno)
+          location.name, location.path, location.lineno,
+          parent_location.name, parent_location.path, parent_location.lineno)
       )
       @@last_log_buff.line_feed
       @@logger.print(indent_string + @@last_log_buff.lines[0].log)
 
       state.up_nest
     end
+    return nil
   end
 
   # Prints the end of the method.
@@ -639,12 +640,12 @@ module DebugTrace
 
       @@last_log_buff = LogBuffer.new(@@config.data_output_width)
       @@last_log_buff.no_break_append(
-        format(@@config.leave_format, location.name, location.filename, location.lineno, time)
+        format(@@config.leave_format, location.name, location.path, location.lineno, time)
       )
       @@last_log_buff.line_feed
       @@logger.print(get_indent_string(state.nest_level, 0) + @@last_log_buff.lines[0].log)
-      return return_value
     end
+    return return_value
   end
 
   # Returns the last print string.

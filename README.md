@@ -77,32 +77,32 @@ func1
 ```
 
 ```log
-2025-07-01 19:12:34.756+09:00 DebugTrace-rb 1.1.1 on Ruby 3.4.4
-2025-07-01 19:12:34.756+09:00   config file: <No config file>
-2025-07-01 19:12:34.756+09:00   logger: StdErrLogger
-2025-07-01 19:12:34.756+09:00 
-2025-07-01 19:12:34.756+09:00 ______________________________  #72 ______________________________
-2025-07-01 19:12:34.756+09:00 
-2025-07-01 19:12:34.756+09:00 Enter func1 (readme-example.rb:29) <- <main> (readme-example.rb:35)
-2025-07-01 19:12:34.756+09:00 | Hello, World! (readme-example.rb:30)
-2025-07-01 19:12:34.756+09:00 | Enter func2 (readme-example.rb:20) <- func1 (readme-example.rb:31)
-2025-07-01 19:12:34.756+09:00 | | Enter initialize (readme-example.rb:10) <- new (readme-example.rb:22)
-2025-07-01 19:12:34.756+09:00 | | Leave initialize (readme-example.rb:15) duration: 0.012 ms
-2025-07-01 19:12:34.756+09:00 | | 
-2025-07-01 19:12:34.756+09:00 | | Enter initialize (readme-example.rb:10) <- new (readme-example.rb:23)
-2025-07-01 19:12:34.756+09:00 | | Leave initialize (readme-example.rb:15) duration: 0.008 ms
-2025-07-01 19:12:34.756+09:00 | Leave func2 (readme-example.rb:25) duration: 0.236 ms
-2025-07-01 19:12:34.757+09:00 Leave func1 (readme-example.rb:32) duration: 0.365 ms
-2025-07-01 19:12:34.757+09:00 
-2025-07-01 19:12:34.757+09:00 contacts = [
-2025-07-01 19:12:34.757+09:00   Contact{
-2025-07-01 19:12:34.757+09:00     @id: 1, @firstName: 'Akane', @lastName: 'Apple', @birthday: 1991-02-03
-2025-07-01 19:12:34.757+09:00   },
-2025-07-01 19:12:34.757+09:00   Contact{
-2025-07-01 19:12:34.757+09:00     @id: 2, @firstName: 'Yukari', @lastName: 'Apple',
-2025-07-01 19:12:34.757+09:00     @birthday: 1992-03-04
-2025-07-01 19:12:34.757+09:00   }
-2025-07-01 19:12:34.757+09:00 ] (readme-example.rb:36)
+2025-07-05 14:38:35.412+09:00 DebugTrace-rb 1.2.0 on Ruby 3.4.4
+2025-07-05 14:38:35.412+09:00   config file: <No config file>
+2025-07-05 14:38:35.412+09:00   logger: StdErrLogger
+2025-07-05 14:38:35.412+09:00 
+2025-07-05 14:38:35.412+09:00 ______________________________  #72 ______________________________
+2025-07-05 14:38:35.412+09:00 
+2025-07-05 14:38:35.412+09:00 Enter func1 (examples/readme-example.rb:29) <- <main> (examples/readme-example.rb:35)
+2025-07-05 14:38:35.412+09:00 | Hello, World! (examples/readme-example.rb:30)
+2025-07-05 14:38:35.412+09:00 | Enter func2 (examples/readme-example.rb:20) <- func1 (examples/readme-example.rb:31)
+2025-07-05 14:38:35.412+09:00 | | Enter Contact#initialize (examples/readme-example.rb:10) <- Class#new (examples/readme-example.rb:22)
+2025-07-05 14:38:35.412+09:00 | | Leave Contact#initialize (examples/readme-example.rb:15) duration: 0.012 ms
+2025-07-05 14:38:35.412+09:00 | | 
+2025-07-05 14:38:35.412+09:00 | | Enter Contact#initialize (examples/readme-example.rb:10) <- Class#new (examples/readme-example.rb:23)
+2025-07-05 14:38:35.412+09:00 | | Leave Contact#initialize (examples/readme-example.rb:15) duration: 0.007 ms
+2025-07-05 14:38:35.413+09:00 | Leave func2 (examples/readme-example.rb:25) duration: 0.234 ms
+2025-07-05 14:38:35.413+09:00 Leave func1 (examples/readme-example.rb:32) duration: 0.379 ms
+2025-07-05 14:38:35.413+09:00 
+2025-07-05 14:38:35.413+09:00 contacts = [
+2025-07-05 14:38:35.413+09:00   Contact{
+2025-07-05 14:38:35.413+09:00     @id: 1, @firstName: 'Akane', @lastName: 'Apple', @birthday: 1991-02-03
+2025-07-05 14:38:35.413+09:00   },
+2025-07-05 14:38:35.413+09:00   Contact{
+2025-07-05 14:38:35.413+09:00     @id: 2, @firstName: 'Yukari', @lastName: 'Apple',
+2025-07-05 14:38:35.413+09:00     @birthday: 1992-03-04
+2025-07-05 14:38:35.413+09:00   }
+2025-07-05 14:38:35.413+09:00 ] (examples/readme-example.rb:36)
 ```
 
 ### 4. List of methods
