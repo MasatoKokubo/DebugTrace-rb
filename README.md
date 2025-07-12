@@ -120,28 +120,29 @@ DebugTrace module has the following methods.
   <tr>
     <td><code>enter</code></td>
     <td><i>None</i></td>
-    <td><i>None</i></td>
+    <td><code>nil</code></td>
     <td>Outputs the start of the method to the log.</td>
   </tr>
   <tr>
     <td><code>leave</code></td>
-    <td><code>return_value</code>: return value of this method<small>(Optional)</small></td>
-    <td><code>return_value</code> <small>(<code>nil</code> if <code>return_value</code> is omitted)</small></td>
+    <td><code>return_value</code>: return value of this method <small>(Optional)</small></td>
+    <td><code>return_value</code> (<code>nil</code> if <code>return_value</code> is omitted)</td>
     <td>Output the end of the method to the log.</td>
   </tr>
   <tr>
     <td><code>print</code></td>
     <td>
-      <code>name</code>: the value name<br>
-      <code>value</code>: the value <small>(Optional)</small><br>
-      <small><i>The following arguments are keyword arguments and optional</i></small><br>
-      <code>reflection</code>: reflection is used aggressively if <code>true</code>, used passively if <code>false</code><small>(Default: <code>false</code>)</small><br>
-      <small><i>The following arguments can be specified in debugtrace.yml (argument specification takes precedence)</i></small><br>
-      <code>minimum_output_size</code>: The minimum number of elements to print for <code>Array</code>, <code>Hash</code> and <code>Set</code><br>
-      <code>minimum_output_length</code>: The minimum length to print the length of the string<br>
-      <code>output_size_limit</code>: The limit on the number of elements output for <code>Map</code>, <code>Hash</code> and <code>Set</code><br>
-      <code>output_length_limit</code>: The limit on the number of characters that can be output from a string<br>
-      <code>reflection_limit</code>: The limit of reflection nesting<br>
+      <p><code>name</code>: the value name</p>
+      <p><code>value</code>: the value <small>(Optional)</small></p>
+      <small><i>The following arguments are keyword arguments and optional</i></small></p>
+      <p><code>reflection</code>: reflection is used aggressively if <code>true</code>, used passively if <code>false</code> (Default: <code>false</code>)</p>
+      <p><code>string_as_bytes</code>: Output strings in hexadecimal if <code>true</code> <small>(Default: <code>false</code>)</small></p>
+      <small><i>The following arguments can be specified in debugtrace.yml (argument specification takes precedence)</i></small></p>
+      <p><code>minimum_output_size</code>: The minimum number of elements to print for <code>Array</code>, <code>Hash</code> and <code>Set</code></p>
+      <p><code>minimum_output_length</code>: The minimum length to print the length of the string<br>
+      <p><code>output_size_limit</code>: The limit on the number of elements output for <code>Map</code>, <code>Hash</code> and <code>Set</code></p>
+      <p><code>output_length_limit</code>: The limit on the number of characters that can be output from a string<br>
+      <p><code>reflection_limit</code>: The limit of reflection nesting</p>
     </td>
     <td>the argument value if it is specified, otherwise <code>nil</code></td>
     <td>

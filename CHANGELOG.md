@@ -1,3 +1,8 @@
+## 1.3.0 - July 12, 2025
+
+* Added optional argument `string_as_bytes` (default: `false`) to the `print` method. The string will be output in hexadecimal if it is `true`.
+* Hexadecimal output of strings with encoding `ASCII_8BIT` has been discontinued.
+
 ## 1.2.0 - July 5, 2025
 
 * Changed source file name output to a relative path from the current directory.

@@ -133,17 +133,17 @@ class DebugTraceTest1 < Test::Unit::TestCase
   test 'print byte array' do
     DebugTrace.enter
     bytes = '@ABCDEFGHIJKLMN'.force_encoding(Encoding::ASCII_8BIT)
-    DebugTrace.print('bytes', bytes)
+    DebugTrace.print('bytes', bytes, string_as_bytes: true)
     assert_match(/ bytes = \[40 41 42 43 44 45 46 47 48 49 4A 4B 4C 4D 4E \| @ABCDEFGHIJKLMN\] /,
       DebugTrace.last_print_string)
 
     bytes = '@ABCDEFGHIJKLMNO'.force_encoding(Encoding::ASCII_8BIT)
-    DebugTrace.print('bytes', bytes)
+    DebugTrace.print('bytes', bytes, string_as_bytes: true)
     assert_match(/ bytes = \[\n  40 41 42 43 44 45 46 47 48 49 4A 4B 4C 4D 4E 4F \| @ABCDEFGHIJKLMNO\n\] /,
       DebugTrace.last_print_string)
 
     bytes = '@ABCDEFGHIJKLMNOPQRSTU'.force_encoding(Encoding::ASCII_8BIT)
-    DebugTrace.print('bytes', bytes)
+    DebugTrace.print('bytes', bytes, string_as_bytes: true)
     assert_match(/ bytes = \[\n  40 41 42 43 44 45 46 47 48 49 4A 4B 4C 4D 4E 4F \| @ABCDEFGHIJKLMNO\n  50 51 52 53 54 55                               \| PQRSTU\n\] /,
       DebugTrace.last_print_string)
     DebugTrace.leave
@@ -152,10 +152,10 @@ class DebugTraceTest1 < Test::Unit::TestCase
   test 'print byte array with length' do
     DebugTrace.enter
     bytes = '@ABCD'.force_encoding(Encoding::ASCII_8BIT)
-    DebugTrace.print('bytes', bytes,  minimum_output_length: 6)
+    DebugTrace.print('bytes', bytes, string_as_bytes: true, minimum_output_length: 6)
     assert_match(/ bytes = \[40 41 42 43 44 \| @ABCD\] /, DebugTrace.last_print_string)
 
-    DebugTrace.print('bytes', bytes,  minimum_output_length: 5)
+    DebugTrace.print('bytes', bytes, string_as_bytes: true, minimum_output_length: 5)
     assert_match(/ bytes = \(length:5\)\[40 41 42 43 44 \| @ABCD\] /, DebugTrace.last_print_string)
     DebugTrace.leave
   end
@@ -163,10 +163,10 @@ class DebugTraceTest1 < Test::Unit::TestCase
   test 'print byte array over limit' do
     DebugTrace.enter
     bytes = '@ABCDE'.force_encoding(Encoding::ASCII_8BIT)
-    DebugTrace.print('bytes', bytes,  output_length_limit: 6)
+    DebugTrace.print('bytes', bytes, string_as_bytes: true, output_length_limit: 6)
     assert_match(/ bytes = \[40 41 42 43 44 45 \| @ABCDE\] /, DebugTrace.last_print_string)
 
-    DebugTrace.print('bytes', bytes,  output_length_limit: 5)
+    DebugTrace.print('bytes', bytes, string_as_bytes: true, output_length_limit: 5)
     assert_match(/ bytes = \[40 41 42 43 44 \.\.\.\| @ABCD\] /, DebugTrace.last_print_string)
     DebugTrace.leave
   end

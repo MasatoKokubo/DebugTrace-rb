@@ -120,7 +120,7 @@ DebugTraceモジュールには以下のメソッドがあります。
   <tr>
     <td><code>enter</code></td>
     <td>なし</td>
-    <td>なし</td>
+    <td><code>nil</code></td>
     <td>メソッドの開始のログを出力する</td>
   </tr>
   <tr>
@@ -132,16 +132,17 @@ DebugTraceモジュールには以下のメソッドがあります。
   <tr>
     <td><code>print</code></td>
     <td>
-      <code>name</code>: 値の名前<br>
-      <code>value</code>: 値 <small>(省略可)</small><br>
-      <small><i>以降の引数は、キーワード引数で省略可</i></small><br>
-      <code>reflection</code>: <code>true</code>ならリフレクションを積極的に使用、<code>false</code>なら消極的に使用 <small>(デフォルト: <code>false</code>)</small><br>
+      <p><code>name</code>: 値の名前</p>
+      <p><code>value</code>: 値 <small>(省略可)</small></p>
+      <small><i>以降の引数は、キーワード引数で省略可</i></small>
+      <code>reflection</code>: <code>true</code>ならリフレクションを積極的に使用、<code>false</code>なら消極的に使用 <small>(デフォルト: <code>false</code>)</small></p>
+      <p><code>string_as_bytes</code>: <code>true</code>なら文字列を16進数で出力する<small>(デフォルト: <code>false</code>)</small></p>
       <small><i>以降の引数は、debugtrace.ymlで指定可能 (引数指定が優先)</i></small><br>
-      <code>minimum_output_size</code>: <code>Array</code>, <code>Hash</code>および<code>Set</code>の要素数を出力する最小要素数<br>
-      <code>minimum_output_length</code>: 文字列の長さを出力する最小の長さ<br>
-      <code>output_size_limit</code>: <code>Array</code>, <code>Hash</code>および<code>Set</code>の要素の出力数の制限値<br>
-      <code>output_length_limit</code>: 文字列の出力文字数の制限値<br>
-      <code>reflection_limit</code>: リフレクションのネスト数の制限値<br>
+      <p><code>minimum_output_size</code>: <code>Array</code>, <code>Hash</code>および<code>Set</code>の要素数を出力する最小要素数</p>
+      <p><code>minimum_output_length</code>: 文字列の長さを出力する最小の長さ<br>
+      <p><code>output_size_limit</code>: <code>Array</code>, <code>Hash</code>および<code>Set</code>の要素の出力数の制限値</p>
+      <p><code>output_length_limit</code>: 文字列の出力文字数の制限値</p>
+      <p><code>reflection_limit</code>: リフレクションのネスト数の制限値</p>
     </td>
     <td>値の指定があれば引数値、なければ<code>nil</code></td>
     <td>

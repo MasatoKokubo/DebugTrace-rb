@@ -78,7 +78,6 @@ module DebugTrace
 
     return unless @@config.enabled?
 
-    config_path = @@config.config == nil ? @@config.config_path : File.expand_path(@@config.config_path)
     @@logger.print("DebugTrace-rb #{DebugTrace::VERSION} on Ruby #{RUBY_VERSION}")
     @@logger.print("  config file: #{config_path}")
     @@logger.print("  logger: #{@@logger}")
@@ -86,12 +85,13 @@ module DebugTrace
 
   # Contains options to pass to the print method.
   class PrintOptions
-    attr_reader :reflection, :minimum_output_size, :minimum_output_length,
+    attr_reader :reflection, :string_as_bytes, :minimum_output_size, :minimum_output_length,
                 :output_size_limit, :output_length_limit, :reflection_limit
 
     # Initializes this object.
     #
     # @param reflection [TrueClass, FalseClass] use reflection if true
+    # @param string_as_bytes [TrueClass, FalseClass] print string as byte array if true
     # @param minimum_output_size [Integer] the minimum value to output the number of elements for Array and Hash (overrides debugtarace.yml value)
     # @param minimum_output_length [Integer] the minimum value to output the length of String and byte array (overrides debugtarace.yml value)
     # @param output_size_limit [Integer] Output limit of collection elements (overrides debugtarace.yml value)
@@ -99,6 +99,7 @@ module DebugTrace
     # @param reflection_limit [Integer] reflection limits when using reflection (overrides debugtarace.yml value)
     def initialize(
       reflection,
+      string_as_bytes,
       minimum_output_size,
       minimum_output_length,
       output_size_limit,
@@ -106,6 +107,7 @@ module DebugTrace
       reflection_limit
     )
       @reflection = reflection
+      @string_as_bytes = string_as_bytes
       @minimum_output_size = minimum_output_size == -1 ? DebugTrace.config.minimum_output_size : minimum_output_size
       @minimum_output_length = minimum_output_length == -1 ? DebugTrace.config.minimum_output_length : minimum_output_length
       @output_size_limit = output_size_limit == -1 ? DebugTrace.config.output_size_limit : output_size_limit
@@ -166,7 +168,7 @@ module DebugTrace
       when Module
         buff.append(value.name).no_break_append(' module')
       when String
-        value_buff = value.encoding == Encoding::ASCII_8BIT ?
+        value_buff = print_options.string_as_bytes ?
             to_string_bytes(value, print_options) : to_string_str(value, print_options)
         buff.append_buffer(value_buff)
       when DateTime, Time
@@ -540,13 +542,14 @@ module DebugTrace
   # @param name [String] a message if the value is not specified, otherwise the value name
   # @option value [Object] the value
   # @option reflection [TrueClass, FalseClass] use reflection if true
+  # @param string_as_bytes [TrueClass, FalseClass] print string as byte array if true
   # @option minimum_output_size [Integer] the minimum value to output the number of elements for Array and Hash (overrides debugtarace.yml value)
   # @option minimum_output_length [Integer] the minimum value to output the length of String and byte array (overrides debugtarace.yml value)
   # @option output_size_limit [Integer] Output limit of collection elements (overrides debugtarace.yml value)
   # @option output_length_limit [Integer] the limit value of characters for string to output (overrides debugtarace.yml value)
   # @option reflection_limit [Integer] reflection limits when using reflection (overrides debugtarace.yml value)
   def self.print(name, value = @@DO_NOT_OUTPUT,
-      reflection: false, minimum_output_size: -1, minimum_output_length: -1,
+      reflection: false, string_as_bytes: false, minimum_output_size: -1, minimum_output_length: -1,
       output_size_limit: -1, output_length_limit: -1, reflection_limit: -1)
     @@thread_mutex.synchronize do
       print_start
@@ -564,7 +567,7 @@ module DebugTrace
       else
         # with value
         print_options = PrintOptions.new(
-          reflection, minimum_output_size, minimum_output_length,
+          reflection, string_as_bytes, minimum_output_size, minimum_output_length,
           output_size_limit, output_length_limit, reflection_limit
         )
         @@last_log_buff = to_string(name, value, print_options)
