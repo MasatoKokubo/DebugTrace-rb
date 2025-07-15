@@ -77,32 +77,32 @@ DebugTrace.print('contacts', contacts)
 ```
 
 ```log
-2025-07-05 14:38:35.412+09:00 DebugTrace-rb 1.2.0 on Ruby 3.4.4
-2025-07-05 14:38:35.412+09:00   config file: <No config file>
-2025-07-05 14:38:35.412+09:00   logger: StdErrLogger
-2025-07-05 14:38:35.412+09:00 
-2025-07-05 14:38:35.412+09:00 ______________________________  #72 ______________________________
-2025-07-05 14:38:35.412+09:00 
-2025-07-05 14:38:35.412+09:00 Enter func1 (examples/readme-example.rb:29) <- <main> (examples/readme-example.rb:35)
-2025-07-05 14:38:35.412+09:00 | Hello, World! (examples/readme-example.rb:30)
-2025-07-05 14:38:35.412+09:00 | Enter func2 (examples/readme-example.rb:20) <- func1 (examples/readme-example.rb:31)
-2025-07-05 14:38:35.412+09:00 | | Enter Contact#initialize (examples/readme-example.rb:10) <- Class#new (examples/readme-example.rb:22)
-2025-07-05 14:38:35.412+09:00 | | Leave Contact#initialize (examples/readme-example.rb:15) duration: 0.012 ms
-2025-07-05 14:38:35.412+09:00 | | 
-2025-07-05 14:38:35.412+09:00 | | Enter Contact#initialize (examples/readme-example.rb:10) <- Class#new (examples/readme-example.rb:23)
-2025-07-05 14:38:35.412+09:00 | | Leave Contact#initialize (examples/readme-example.rb:15) duration: 0.007 ms
-2025-07-05 14:38:35.413+09:00 | Leave func2 (examples/readme-example.rb:25) duration: 0.234 ms
-2025-07-05 14:38:35.413+09:00 Leave func1 (examples/readme-example.rb:32) duration: 0.379 ms
-2025-07-05 14:38:35.413+09:00 
-2025-07-05 14:38:35.413+09:00 contacts = [
-2025-07-05 14:38:35.413+09:00   Contact{
-2025-07-05 14:38:35.413+09:00     @id: 1, @firstName: 'Akane', @lastName: 'Apple', @birthday: 1991-02-03
-2025-07-05 14:38:35.413+09:00   },
-2025-07-05 14:38:35.413+09:00   Contact{
-2025-07-05 14:38:35.413+09:00     @id: 2, @firstName: 'Yukari', @lastName: 'Apple',
-2025-07-05 14:38:35.413+09:00     @birthday: 1992-03-04
-2025-07-05 14:38:35.413+09:00   }
-2025-07-05 14:38:35.413+09:00 ] (examples/readme-example.rb:36)
+2025-07-15 20:45:14.106+09:00 DebugTrace-rb 1.3.1 on Ruby 3.4.4
+2025-07-15 20:45:14.106+09:00   config file: ./debugtrace.yml
+2025-07-15 20:45:14.106+09:00   logger: StdErrLogger
+2025-07-15 20:45:14.106+09:00 
+2025-07-15 20:45:14.106+09:00 ______________________________  #72 ______________________________
+2025-07-15 20:45:14.106+09:00 
+2025-07-15 20:45:14.106+09:00 Enter func1 (examples/readme-example.rb:29) <- <main> (examples/readme-example.rb:35)
+2025-07-15 20:45:14.106+09:00 | Hello, World! (examples/readme-example.rb:30)
+2025-07-15 20:45:14.106+09:00 | Enter func2 (examples/readme-example.rb:20) <- func1 (examples/readme-example.rb:31)
+2025-07-15 20:45:14.106+09:00 | | Enter Contact#initialize (examples/readme-example.rb:10) <- Class#new (examples/readme-example.rb:22)
+2025-07-15 20:45:14.106+09:00 | | Leave Contact#initialize (examples/readme-example.rb:15) duration: 0.011 ms
+2025-07-15 20:45:14.106+09:00 | | 
+2025-07-15 20:45:14.106+09:00 | | Enter Contact#initialize (examples/readme-example.rb:10) <- Class#new (examples/readme-example.rb:23)
+2025-07-15 20:45:14.106+09:00 | | Leave Contact#initialize (examples/readme-example.rb:15) duration: 0.019 ms
+2025-07-15 20:45:14.106+09:00 | Leave func2 (examples/readme-example.rb:25) duration: 0.229 ms
+2025-07-15 20:45:14.106+09:00 Leave func1 (examples/readme-example.rb:32) duration: 0.361 ms
+2025-07-15 20:45:14.107+09:00 
+2025-07-15 20:45:14.107+09:00 contacts = [
+2025-07-15 20:45:14.107+09:00   Contact{
+2025-07-15 20:45:14.107+09:00     @id: 1, @firstName: 'Akane', @lastName: 'Apple', @birthday: 1991-02-03
+2025-07-15 20:45:14.107+09:00   },
+2025-07-15 20:45:14.107+09:00   Contact{
+2025-07-15 20:45:14.107+09:00     @id: 2, @firstName: 'Yukari', @lastName: 'Apple',
+2025-07-15 20:45:14.107+09:00     @birthday: 1992-03-04
+2025-07-15 20:45:14.107+09:00   }
+2025-07-15 20:45:14.107+09:00 ] (examples/readme-example.rb:36)
 ```
 
 ### 4. メソッド一覧
@@ -136,7 +136,7 @@ DebugTraceモジュールには以下のメソッドがあります。
       <p><code>value</code>: 値 <small>(省略可)</small></p>
       <small><i>以降の引数は、キーワード引数で省略可</i></small>
       <code>reflection</code>: <code>true</code>ならリフレクションを積極的に使用、<code>false</code>なら消極的に使用 <small>(デフォルト: <code>false</code>)</small></p>
-      <p><code>string_as_bytes</code>: <code>true</code>なら文字列を16進数で出力する<small>(デフォルト: <code>false</code>)</small></p>
+      <p><code>string_as_bytes</code>: <code>true</code>ならエンコードが<code>ASCII_8BIT</code>の文字列を16進数で出力する<small>(デフォルト: <code>false</code>)</small></p>
       <small><i>以降の引数は、debugtrace.ymlで指定可能 (引数指定が優先)</i></small><br>
       <p><code>minimum_output_size</code>: <code>Array</code>, <code>Hash</code>および<code>Set</code>の要素数を出力する最小要素数</p>
       <p><code>minimum_output_length</code>: 文字列の長さを出力する最小の長さ<br>

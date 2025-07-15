@@ -77,32 +77,32 @@ func1
 ```
 
 ```log
-2025-07-05 14:38:35.412+09:00 DebugTrace-rb 1.2.0 on Ruby 3.4.4
-2025-07-05 14:38:35.412+09:00   config file: <No config file>
-2025-07-05 14:38:35.412+09:00   logger: StdErrLogger
-2025-07-05 14:38:35.412+09:00 
-2025-07-05 14:38:35.412+09:00 ______________________________  #72 ______________________________
-2025-07-05 14:38:35.412+09:00 
-2025-07-05 14:38:35.412+09:00 Enter func1 (examples/readme-example.rb:29) <- <main> (examples/readme-example.rb:35)
-2025-07-05 14:38:35.412+09:00 | Hello, World! (examples/readme-example.rb:30)
-2025-07-05 14:38:35.412+09:00 | Enter func2 (examples/readme-example.rb:20) <- func1 (examples/readme-example.rb:31)
-2025-07-05 14:38:35.412+09:00 | | Enter Contact#initialize (examples/readme-example.rb:10) <- Class#new (examples/readme-example.rb:22)
-2025-07-05 14:38:35.412+09:00 | | Leave Contact#initialize (examples/readme-example.rb:15) duration: 0.012 ms
-2025-07-05 14:38:35.412+09:00 | | 
-2025-07-05 14:38:35.412+09:00 | | Enter Contact#initialize (examples/readme-example.rb:10) <- Class#new (examples/readme-example.rb:23)
-2025-07-05 14:38:35.412+09:00 | | Leave Contact#initialize (examples/readme-example.rb:15) duration: 0.007 ms
-2025-07-05 14:38:35.413+09:00 | Leave func2 (examples/readme-example.rb:25) duration: 0.234 ms
-2025-07-05 14:38:35.413+09:00 Leave func1 (examples/readme-example.rb:32) duration: 0.379 ms
-2025-07-05 14:38:35.413+09:00 
-2025-07-05 14:38:35.413+09:00 contacts = [
-2025-07-05 14:38:35.413+09:00   Contact{
-2025-07-05 14:38:35.413+09:00     @id: 1, @firstName: 'Akane', @lastName: 'Apple', @birthday: 1991-02-03
-2025-07-05 14:38:35.413+09:00   },
-2025-07-05 14:38:35.413+09:00   Contact{
-2025-07-05 14:38:35.413+09:00     @id: 2, @firstName: 'Yukari', @lastName: 'Apple',
-2025-07-05 14:38:35.413+09:00     @birthday: 1992-03-04
-2025-07-05 14:38:35.413+09:00   }
-2025-07-05 14:38:35.413+09:00 ] (examples/readme-example.rb:36)
+2025-07-15 20:45:14.106+09:00 DebugTrace-rb 1.3.1 on Ruby 3.4.4
+2025-07-15 20:45:14.106+09:00   config file: ./debugtrace.yml
+2025-07-15 20:45:14.106+09:00   logger: StdErrLogger
+2025-07-15 20:45:14.106+09:00 
+2025-07-15 20:45:14.106+09:00 ______________________________  #72 ______________________________
+2025-07-15 20:45:14.106+09:00 
+2025-07-15 20:45:14.106+09:00 Enter func1 (examples/readme-example.rb:29) <- <main> (examples/readme-example.rb:35)
+2025-07-15 20:45:14.106+09:00 | Hello, World! (examples/readme-example.rb:30)
+2025-07-15 20:45:14.106+09:00 | Enter func2 (examples/readme-example.rb:20) <- func1 (examples/readme-example.rb:31)
+2025-07-15 20:45:14.106+09:00 | | Enter Contact#initialize (examples/readme-example.rb:10) <- Class#new (examples/readme-example.rb:22)
+2025-07-15 20:45:14.106+09:00 | | Leave Contact#initialize (examples/readme-example.rb:15) duration: 0.011 ms
+2025-07-15 20:45:14.106+09:00 | | 
+2025-07-15 20:45:14.106+09:00 | | Enter Contact#initialize (examples/readme-example.rb:10) <- Class#new (examples/readme-example.rb:23)
+2025-07-15 20:45:14.106+09:00 | | Leave Contact#initialize (examples/readme-example.rb:15) duration: 0.019 ms
+2025-07-15 20:45:14.106+09:00 | Leave func2 (examples/readme-example.rb:25) duration: 0.229 ms
+2025-07-15 20:45:14.106+09:00 Leave func1 (examples/readme-example.rb:32) duration: 0.361 ms
+2025-07-15 20:45:14.107+09:00 
+2025-07-15 20:45:14.107+09:00 contacts = [
+2025-07-15 20:45:14.107+09:00   Contact{
+2025-07-15 20:45:14.107+09:00     @id: 1, @firstName: 'Akane', @lastName: 'Apple', @birthday: 1991-02-03
+2025-07-15 20:45:14.107+09:00   },
+2025-07-15 20:45:14.107+09:00   Contact{
+2025-07-15 20:45:14.107+09:00     @id: 2, @firstName: 'Yukari', @lastName: 'Apple',
+2025-07-15 20:45:14.107+09:00     @birthday: 1992-03-04
+2025-07-15 20:45:14.107+09:00   }
+2025-07-15 20:45:14.107+09:00 ] (examples/readme-example.rb:36)
 ```
 
 ### 4. List of methods
@@ -136,7 +136,7 @@ DebugTrace module has the following methods.
       <p><code>value</code>: the value <small>(Optional)</small></p>
       <small><i>The following arguments are keyword arguments and optional</i></small></p>
       <p><code>reflection</code>: reflection is used aggressively if <code>true</code>, used passively if <code>false</code> (Default: <code>false</code>)</p>
-      <p><code>string_as_bytes</code>: Output strings in hexadecimal if <code>true</code> <small>(Default: <code>false</code>)</small></p>
+      <p><code>string_as_bytes</code>: Output strings which encoding is <code>ASCII_8BIT</code> in hexadecimal if <code>true</code> <small>(Default: <code>false</code>)</small></p>
       <small><i>The following arguments can be specified in debugtrace.yml (argument specification takes precedence)</i></small></p>
       <p><code>minimum_output_size</code>: The minimum number of elements to print for <code>Array</code>, <code>Hash</code> and <code>Set</code></p>
       <p><code>minimum_output_length</code>: The minimum length to print the length of the string<br>

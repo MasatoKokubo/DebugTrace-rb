@@ -1,3 +1,7 @@
+## 1.3.1 - July 15, 2025
+* Even if `string_as_bytes: true` is specified in the `print` method, if the string encoding is not `ASCII_8BIT`, it will be output as a normal string.
+* If an exception is thrown when trying to output as a normal string, it will be output in hexadecimal.
+ 
 ## 1.3.0 - July 12, 2025
 
 * Added optional argument `string_as_bytes` (default: `false`) to the `print` method. The string will be output in hexadecimal if it is `true`.

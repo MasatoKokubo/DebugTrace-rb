@@ -168,8 +168,16 @@ module DebugTrace
       when Module
         buff.append(value.name).no_break_append(' module')
       when String
-        value_buff = print_options.string_as_bytes ?
-            to_string_bytes(value, print_options) : to_string_str(value, print_options)
+        value_buff = nil
+        if print_options.string_as_bytes && value.encoding == Encoding::ASCII_8BIT
+          value_buff = to_string_bytes(value, print_options)
+        else
+          begin
+            value_buff = to_string_str(value, print_options)
+          rescue
+            value_buff = to_string_bytes(value, print_options)
+          end
+        end
         buff.append_buffer(value_buff)
       when DateTime, Time
         buff.append(value.strftime('%Y-%m-%d %H:%M:%S.%L%:z'))
